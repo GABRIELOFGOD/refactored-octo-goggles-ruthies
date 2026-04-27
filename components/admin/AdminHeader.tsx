@@ -1,19 +1,18 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
+import { useAuth } from '@/provider/auth-provider';
 import { Bell, Settings, User, LogOut } from 'lucide-react';
 
 export default function AdminHeader() {
-  const { data: session } = useSession();
+  const { user, logOut: userLogOut } = useAuth();
 
   return (
     <header className="sticky top-0 z-20 w-full bg-white border-b border-neutral-200 md:ml-64">
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center w-full justify-between px-6 py-4">
         {/* Left */}
         <div>
           <h2 className="text-sm text-neutral-600">Welcome back,</h2>
-          <p className="font-semibold text-primary">{session?.user?.name || 'Admin'}</p>
+          <p className="font-semibold text-primary">{user?.name || 'Admin'}</p>
         </div>
 
         {/* Right */}
@@ -30,10 +29,10 @@ export default function AdminHeader() {
 
           <div className="flex items-center gap-2 pl-4 border-l border-neutral-200">
             <div className="w-8 h-8 rounded-full bg-secondary text-light-bg flex items-center justify-center font-bold text-sm">
-              {session?.user?.name?.charAt(0) || 'A'}
+              {user?.name?.charAt(0) || 'A'}
             </div>
             <button
-              onClick={() => signOut({ redirectTo: '/' })}
+              onClick={() => userLogOut({ redirectTo: "/" })}
               className="text-neutral-600 hover:text-primary transition-colors"
               title="Logout"
             >

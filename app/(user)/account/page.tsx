@@ -1,16 +1,12 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
-import { redirect } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { IUser } from '@/types';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { useAuth } from '@/provider/auth-provider';
 
 export default function AccountPage() {
-  const { data: session, status } = useSession();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [user, setUser] = useState<IUser | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -24,47 +20,39 @@ export default function AccountPage() {
     preferredCurrency: 'NGN' as const,
     preferredLanguage: 'en' as const,
   });
+  
+  const { user, refreshUserData } = useAuth();
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      redirect('/auth/login');
-    }
-
-    if (status === 'authenticated' && session?.user?.id) {
-      fetchUserData();
-    }
-  }, [status, session]);
-
-  const fetchUserData = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/user/profile');
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.data);
-        setFormData({
-          name: data.data.name || '',
-          phone: data.data.phone || '',
-          address: data.data.address || {
-            street: '',
-            city: '',
-            state: '',
-            country: '',
-            postalCode: '',
-          },
-          preferredCurrency: data.data.preferredCurrency || 'NGN',
-          preferredLanguage: data.data.preferredLanguage || 'en',
-        });
-      } else {
-        toast.error('Failed to load profile');
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      toast.error('Error loading profile');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // const fetchUserData = async () => {
+  //   try {
+  //     setIsLoading(true);
+  //     const response = await fetch('/api/user/profile');
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setUser(data.data);
+  //       setFormData({
+  //         name: data.data.name || '',
+  //         phone: data.data.phone || '',
+  //         address: data.data.address || {
+  //           street: '',
+  //           city: '',
+  //           state: '',
+  //           country: '',
+  //           postalCode: '',
+  //         },
+  //         preferredCurrency: data.data.preferredCurrency || 'NGN',
+  //         preferredLanguage: data.data.preferredLanguage || 'en',
+  //       });
+  //     } else {
+  //       toast.error('Failed to load profile');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching user data:', error);
+  //     toast.error('Error loading profile');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -97,7 +85,7 @@ export default function AccountPage() {
 
       if (response.ok) {
         toast.success('Profile updated successfully');
-        await fetchUserData();
+        await refreshUserData();
       } else {
         toast.error('Failed to update profile');
       }
@@ -122,10 +110,6 @@ export default function AccountPage() {
     );
   }
 
-  if (!session?.user) {
-    redirect('/auth/login');
-  }
-
   return (
     <div className="min-h-screen bg-light-bg py-16">
       <div className="max-w-2xl mx-auto px-4">
@@ -143,7 +127,7 @@ export default function AccountPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-neutral-600">Email</p>
-                <p className="font-semibold text-neutral-900">{session.user.email}</p>
+                <p className="font-semibold text-neutral-900">{user?.email}</p>
               </div>
               <div>
                 <p className="text-sm text-neutral-600">Member Since</p>

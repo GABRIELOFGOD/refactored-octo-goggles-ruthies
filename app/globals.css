@@ -164,3 +164,7 @@ body {
 html {
   font-family: var(--font-dm-sans);
 }
+
+button {
+  cursor: pointer;
+}

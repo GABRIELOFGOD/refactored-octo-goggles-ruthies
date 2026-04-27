@@ -2,19 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Category } from '@/models/Category';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, ICategory } from '@/types';
-import { auth } from '@/lib/auth';
+import { authenticateUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
-    const session = await auth();
-
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
+    
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10);
     const limit = parseInt(request.nextUrl.searchParams.get('limit') || '20', 10);
@@ -52,14 +47,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
-    const session = await auth();
-
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
+    
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const body = await request.json();
     const { name, description, image, parent } = body;

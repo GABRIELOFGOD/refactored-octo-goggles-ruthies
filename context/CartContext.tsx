@@ -53,7 +53,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initializeCart();
+    // initializeCart();
   }, []);
 
   const addToCart = async (item: CartItem) => {

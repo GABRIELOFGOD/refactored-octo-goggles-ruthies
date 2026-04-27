@@ -1,10 +1,7 @@
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
-import { redirect, notFound } from 'next/navigation';
-import connectToDatabase from '@/lib/mongoose';
-import { Product } from '@/models/Product';
-import { Category } from '@/models/Category';
 import ProductForm from '@/components/admin/ProductForm';
+import { getProduct } from '@/lib/products';
+import { getCategories } from '@/lib/categories';
+// import { useEffect, useState } from 'react';
 
 interface EditProductPageProps {
   params: Promise<{ id: string }>;
@@ -13,22 +10,20 @@ interface EditProductPageProps {
 export default async function EditProductPage({
   params,
 }: EditProductPageProps) {
-  const session = await getServerSession(authConfig);
-
-  if (!session || session.user.role !== 'admin') {
-    redirect('/auth/login');
-  }
-
-  await connectToDatabase();
-
   const { id } = await params;
-  const productData: any = await Product.findById(id).populate('category').lean();
+  
+  const [productData, categories] = await Promise.all([
+    getProduct(id),
+    getCategories(),
+  ]);
 
-  if (!productData || productData?.isDeleted) {
-    notFound();
+  if (!productData || productData.isDeleted) {
+    return (
+      <div className="h-screen flex justify-center items-center">
+        <p>Product not found</p>
+      </div>
+    );
   }
-
-  const categories = await Category.find({ isDeleted: { $ne: true } }).lean() as any[];
 
   return (
     <div className="space-y-6">

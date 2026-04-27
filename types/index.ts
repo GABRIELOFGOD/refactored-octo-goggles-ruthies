@@ -372,3 +372,16 @@ export interface JwtPayload {
   id: string;
   email: string
 }
+
+
+export interface FormDataType {
+  code: string;
+  type: "percentage";
+  value: number;
+  currency: "NGN";
+  minimumOrderValue: number;
+  maxUsageCount: number | undefined;
+  validFrom: string;
+  validUntil: string;
+  isActive: boolean;
+}

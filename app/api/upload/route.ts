@@ -1,7 +1,7 @@
+import { authenticateUser } from '@/lib/auth-helpers';
+import { ApiResponse } from '@/types';
 import { v2 as cloudinary } from 'cloudinary';
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -11,11 +11,9 @@ cloudinary.config({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
-
-    if (!session || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
+          
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];

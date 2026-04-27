@@ -1,27 +1,12 @@
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-import connectToDatabase from '@/lib/mongoose';
-import { Product } from '@/models/Product';
+"use client";
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useProducts } from '@/hooks/use-products';
 
-export default async function ProductsAdminPage() {
-  const session = await getServerSession(authConfig);
-
-  if (!session || session.user.role !== 'admin') {
-    redirect('/auth/login');
-  }
-
-  await connectToDatabase();
-
-  const products = await Product.find({ isDeleted: { $ne: true } })
-    .populate('category', 'name')
-    .select('name heroImage category prices isPublished createdAt')
-    .sort({ createdAt: -1 })
-    .limit(50)
-    .lean();
+export default function ProductsAdminPage() {
+  const { products } = useProducts();
 
   return (
     <div className="space-y-6">
@@ -31,7 +16,7 @@ export default async function ProductsAdminPage() {
           <p className="text-neutral-600">Manage your product catalog</p>
         </div>
         <Link href="/admin/products/new">
-          <Button className="bg-secondary text-light-bg hover:bg-secondary/90">
+          <Button className="bg-secondary cursor-pointer text-light-bg hover:bg-secondary/90">
             <Plus className="w-4 h-4 mr-2" />
             New Product
           </Button>

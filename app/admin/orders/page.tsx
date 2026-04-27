@@ -1,24 +1,9 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
-import { redirect } from 'next/navigation';
 import AdminOrderManagement from '@/components/admin/AdminOrderManagement';
 
 export default function AdminOrdersPage() {
-  const { data: session, status } = useSession();
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-light-bg py-12 flex items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  if (!session?.user || session.user.role !== 'admin') {
-    redirect('/');
-  }
-
+  
   return (
     <div className="min-h-screen bg-light-bg py-12">
       <div className="max-w-6xl mx-auto px-4">

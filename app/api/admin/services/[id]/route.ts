@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongoose';
 import { Service } from '@/models/Service';
+import { authenticateUser } from '@/lib/auth-helpers';
+import { ApiResponse } from '@/types';
 
 export async function GET(
   request: NextRequest,
@@ -36,13 +36,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authConfig);
-    if (!session || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
 
     const { id } = await params;
     await connectToDatabase();
+        
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const body = await request.json();
 
@@ -77,13 +76,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authConfig);
-    if (!session || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
 
     const { id } = await params;
     await connectToDatabase();
+        
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const service = await Service.findByIdAndUpdate(
       id,

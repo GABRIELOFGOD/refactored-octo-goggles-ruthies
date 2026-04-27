@@ -8,9 +8,10 @@ export async function GET(
   { params }: { params: { orderId: string } }
 ) {
   try {
+    const { orderId } = await params;
     await connectToDatabase();
 
-    const order = await Order.findById(params.orderId).populate('items.product');
+    const order = await Order.findById(orderId).populate('items.product');
 
     if (!order) {
       return NextResponse.json<ApiResponse>(

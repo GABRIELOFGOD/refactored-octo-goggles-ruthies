@@ -28,7 +28,12 @@ export default function AdminCategoriesPage() {
       let query = `/api/admin/categories?page=${page}&limit=${limit}`;
       if (search) query += `&search=${encodeURIComponent(search)}`;
 
-      const res = await fetch(query);
+      const res = await fetch(query, {
+        method: "GET",
+        headers: {
+          "authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      });
       const data = await res.json();
 
       if (data.success) {
@@ -59,7 +64,10 @@ export default function AdminCategoriesPage() {
 
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          "authorization": `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify(formData),
       });
 

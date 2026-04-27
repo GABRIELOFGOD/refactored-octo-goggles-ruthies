@@ -1,32 +1,31 @@
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
+"use client";
+
 import { redirect } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminHeader from '@/components/admin/AdminHeader';
+import { useAuth } from '@/provider/auth-provider';
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authConfig);
+  const { user } = useAuth()
 
-  // Redirect to login if not authenticated
-  if (!session) {
+  if (!user || user === null) {
     redirect('/auth/login');
   }
 
-  // Redirect to home if not admin
-  if (session.user.role !== 'admin') {
+  if (user.role !== 'admin') {
     redirect('/');
   }
 
   return (
-    <div className="flex">
+    <div className="max-w-screen overflow-x-hidden flex flex-row">
       <AdminSidebar />
-      <div className="flex-1 md:ml-64 bg-light-bg min-h-screen">
+      <div className="flex-1 w-full bg-light-bg min-h-screen">
         <AdminHeader />
-        <main className="p-6">{children}</main>
+        <main className="p-6 md:ml-64">{children}</main>
       </div>
     </div>
   );

@@ -2,24 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Product } from '@/models/Product';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IProduct } from '@/types';
-import { auth } from '@/lib/auth';
+import { authenticateUser } from '@/lib/auth-helpers';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
-    const session = await auth();
 
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
+    console.log("Product ID", id);
+            
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
-    const product = await Product.findById(params.id).populate('category');
+    const product = await Product.findById(id).populate('category');
 
     if (!product || product.isDeleted) {
       return NextResponse.json<ApiResponse>(
@@ -46,21 +44,17 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
-    const session = await auth();
-
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
+        
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const body = await request.json();
     const { name, category, description, prices, images, variants, tags, featured, newArrival, published, seo } = body;
 
     const product = await Product.findByIdAndUpdate(
-      params.id,
+      id,
       {
         name,
         category,
@@ -109,18 +103,14 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
-    const session = await auth();
-
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
+        
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const product = await Product.findByIdAndUpdate(
-      params.id,
+      id,
       {
         isDeleted: true,
         deletedAt: new Date(),

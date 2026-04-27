@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import { useAuth } from '@/provider/auth-provider';
 import Link from 'next/link';
 
-export default async function UserLayout({
+export default function UserLayout({
   children,
 }: {
   children: React.ReactNode;

@@ -1,9 +1,12 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Query } from 'mongoose';
 import { IUser } from '@/types';
 
+interface UserQueryHelpers {
+  notDeleted(): Query<any, UserDocument> & UserQueryHelpers;
+}
 export interface UserDocument extends IUser, Document {}
 
-const userSchema = new Schema<UserDocument>(
+const userSchema = new Schema<UserDocument, mongoose.Model<UserDocument, UserQueryHelpers>, {}, UserQueryHelpers>(
   {
     name: {
       type: String,
@@ -62,7 +65,7 @@ const userSchema = new Schema<UserDocument>(
 );
 
 // Soft delete middleware
-userSchema.query.notDeleted = function () {
+userSchema.query.notDeleted = function (this: Query<any, UserDocument> & UserQueryHelpers) {
   return this.where({ isDeleted: { $ne: true } });
 };
 

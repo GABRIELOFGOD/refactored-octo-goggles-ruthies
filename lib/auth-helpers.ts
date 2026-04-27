@@ -69,7 +69,7 @@ export const authenticateUser = async (request: NextRequest): Promise<IUser> => 
 
     await connectToDatabase()
     const user = await User.findById(decodedToken.id);
-    if (!user) throw new Error("User not found");
+    if (!user || user.isDeleted) throw new Error("User not found");
     return user;
   } catch (error) {
     throw error;

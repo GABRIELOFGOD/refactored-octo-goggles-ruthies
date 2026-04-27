@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Order } from '@/models/Order';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IOrder } from '@/types';
-import { auth } from '@/lib/auth';
 import { sendOrderStatusUpdateEmail, sendOrderShippedEmail } from '@/lib/email';
+import { authenticateUser } from '@/lib/auth-helpers';
 
 // Admin only - update order status and tracking
 export async function PUT(
@@ -11,21 +11,16 @@ export async function PUT(
   { params }: { params: { orderId: string } }
 ) {
   try {
+    const { orderId } = await params;
     await connectToDatabase();
-    const session = await auth();
-
-    // Check if user is admin
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
+    
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const body = await request.json();
     const { status, trackingNumber, trackingUrl, timelineEvent, sendEmail } = body;
 
-    const order = await Order.findById(params.orderId);
+    const order = await Order.findById(orderId);
 
     if (!order) {
       return NextResponse.json<ApiResponse>(
@@ -59,7 +54,7 @@ export async function PUT(
         status: timelineEvent.status,
         message: timelineEvent.message,
         timestamp: new Date(),
-        updatedBy: session.user.id,
+        updatedBy: user._id,
       });
     }
 
@@ -108,17 +103,13 @@ export async function GET(
   { params }: { params: { orderId: string } }
 ) {
   try {
+    const { orderId } = await params;
     await connectToDatabase();
-    const session = await auth();
+        
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
-
-    const order = await Order.findById(params.orderId).populate('items.product');
+    const order = await Order.findById(orderId).populate('items.product');
 
     if (!order) {
       return NextResponse.json<ApiResponse>(

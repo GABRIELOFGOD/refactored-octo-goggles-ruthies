@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiResponse, JwtPayload } from '@/types';
 import { User } from "@/models/User";
 import { signToken, verifyPassword } from "@/lib/auth-helpers";
+import connectToDatabase from "@/lib/mongoose";
 
 export const POST = async (request: NextRequest) => {
   try {
@@ -11,6 +12,8 @@ export const POST = async (request: NextRequest) => {
       success: false,
       error: "Missing required field"
     });
+
+    await connectToDatabase();
 
     const user = await User.findOne({ email }).select("+passwordHash");
 

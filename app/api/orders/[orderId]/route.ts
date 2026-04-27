@@ -9,11 +9,12 @@ export async function GET(
   { params }: { params: { orderId: string } }
 ) {
   try {
+    const { orderId } = await params;
     await connectToDatabase();
     const session = await auth();
 
     const order = await Order.findOne({
-      _id: params.orderId,
+      _id: orderId,
       isDeleted: { $ne: true },
     }).populate('items.product');
 

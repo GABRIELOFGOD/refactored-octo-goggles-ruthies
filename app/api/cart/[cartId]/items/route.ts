@@ -8,10 +8,11 @@ export async function POST(
   { params }: { params: { cartId: string } }
 ) {
   try {
+    const { cartId } = await params;
     const body = await request.json();
     await connectToDatabase();
 
-    const cart = await Cart.findById(params.cartId);
+    const cart = await Cart.findById(cartId);
     if (!cart) {
       return NextResponse.json<ApiResponse>(
         { success: false, error: 'Cart not found' },

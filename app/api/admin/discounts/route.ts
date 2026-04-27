@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongoose';
 import { Discount } from '@/models/Discount';
+import { ApiResponse } from '@/types';
+import { authenticateUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,12 +28,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.role?.includes('admin')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
 
     await connectToDatabase();
+        
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
     const body = await request.json();
 
     const discount = new Discount({

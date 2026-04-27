@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongoose';
 import { Discount } from '@/models/Discount';
+import { authenticateUser } from '@/lib/auth-helpers';
+import { ApiResponse } from '@/types';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.role?.includes('admin')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
 
     const { id } = await params;
     await connectToDatabase();
+    
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const body = await request.json();
     const discount = await Discount.findByIdAndUpdate(id, body, { new: true }).lean();
@@ -32,13 +31,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authConfig);
-    if (!session?.user?.role?.includes('admin')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
 
     const { id } = await params;
     await connectToDatabase();
+    
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     await Discount.findByIdAndUpdate(id, {
       isDeleted: true,

@@ -6,6 +6,7 @@ import { useWishlist } from '@/context/WishlistContext';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/provider/auth-provider';
+import Image from 'next/image';
 
 export default function Header() {
   const { items: cartItems } = useCart();
@@ -18,6 +19,14 @@ export default function Header() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2">
+        <div className='w-10 h-10 my-auto relative'>
+          <Image
+            src={"/brand/ruthies_logo.jpg"}
+            alt='Logo'
+            fill
+            className='w-full h-full object-cover'
+          />
+        </div>
           <h1 className="text-2xl font-bold font-playfair text-primary">
             Ruthies
           </h1>
@@ -59,7 +68,7 @@ export default function Header() {
                 Account
               </Link>
               <button
-                onClick={() => logOut()}
+                onClick={() => logOut({ redirectTo: `${pathName}` })}
                 className="text-neutral-700 hover:text-secondary font-medium hidden sm:flex cursor-pointer"
               >
                 Logout

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
   BarChart3,
@@ -19,6 +18,7 @@ import {
   Menu,
 } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/provider/auth-provider';
 
 const menuItems = [
   { label: 'Dashboard', href: '/admin', icon: BarChart3 },
@@ -36,6 +36,8 @@ const menuItems = [
 export default function AdminSidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+
+  const { logOut } = useAuth();
 
   const isActive = (href: string) => {
     if (href === '/admin') {
@@ -78,7 +80,7 @@ export default function AdminSidebar() {
               <Link key={item.href} href={item.href}>
                 <button
                   onClick={() => setIsOpen(false)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  className={`w-full cursor-pointer flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     active
                       ? 'bg-light-bg text-primary font-semibold'
                       : 'text-neutral-700 hover:bg-light-bg hover:text-primary'
@@ -95,7 +97,7 @@ export default function AdminSidebar() {
         {/* Logout */}
         <div className="p-4 border-t border-neutral-200">
           <Button
-            onClick={() => signOut({ redirectTo: '/' })}
+            onClick={() => logOut({ redirectTo: '/' })}
             variant="outline"
             className="w-full flex items-center justify-center gap-2 border-primary text-primary hover:bg-light-bg"
           >

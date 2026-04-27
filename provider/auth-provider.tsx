@@ -8,7 +8,8 @@ import { ReactNode } from "react";
 interface AuthContextType {
   user: IUser | null;
   isLoading: boolean;
-  logOut: () => void;
+  refreshUserData: () => void;
+  logOut: ({ redirectTo }: { redirectTo?: string }) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,9 +38,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const logOut = () => {
+  const refreshUserData = () => {
+    getUser();
+  }
+
+  const logOut = ({ redirectTo } : { redirectTo?: string }) => {
     localStorage.removeItem("token");
-    location.reload();
+    redirectTo ? location.assign(redirectTo) : location.reload();
   }
 
   useEffect(() => {
@@ -48,7 +53,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, logOut }}
+      value={{ user, isLoading, logOut, refreshUserData }}
     >
       {children}
     </AuthContext.Provider>

@@ -45,7 +45,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    initializeWishlist();
+    // initializeWishlist();
   }, []);
 
   // Persist to localStorage

@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongoose';
 import { Newsletter } from '@/models/Newsletter';
+import { authenticateUser } from '@/lib/auth-helpers';
+import { ApiResponse } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authConfig);
-    if (!session || session.user.role !== 'admin') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
 
     await connectToDatabase();
+        
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';

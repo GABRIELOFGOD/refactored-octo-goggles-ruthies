@@ -2,27 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Wishlist } from '@/models/Wishlist';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IWishlist } from '@/types';
-import { auth } from '@/lib/auth';
+import { authenticateUser } from '@/lib/auth-helpers';
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { productId: string } }
 ) {
   try {
+    const { productId } = await params;
     await connectToDatabase();
+            
+    const user = await authenticateUser(request);
 
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          error: 'Unauthorized',
-        },
-        { status: 401 }
-      );
-    }
-
-    const wishlist = await Wishlist.findOne({ user: session.user.id });
+    const wishlist = await Wishlist.findOne({ user: user._id });
 
     if (!wishlist) {
       return NextResponse.json<ApiResponse>(
@@ -35,7 +27,7 @@ export async function DELETE(
     }
 
     wishlist.products = wishlist.products.filter(
-      (id: any) => id.toString() !== params.productId
+      (id: any) => id.toString() !== productId
     );
 
     await wishlist.save();

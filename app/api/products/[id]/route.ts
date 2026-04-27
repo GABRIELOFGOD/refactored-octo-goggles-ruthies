@@ -2,19 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Product } from '@/models/Product';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IProduct } from '@/types';
+import { authenticateUser } from '@/lib/auth-helpers';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
 
     // Try to find by ID or slug
     let product = await Product.findOne({
       $or: [
-        { _id: params.id },
-        { slug: params.id },
+        { _id: id },
+        { slug: id },
       ],
       isDeleted: { $ne: true },
     }).populate('category');
@@ -53,11 +55,15 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     // TODO: Add admin authentication
     const body = await request.json();
     await connectToDatabase();
 
-    const product = await Product.findByIdAndUpdate(params.id, body, {
+    const user = await authenticateUser(request);
+    if (!user || user.role === "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" });
+
+    const product = await Product.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
     }).populate('category');
@@ -97,11 +103,15 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     // TODO: Add admin authentication
     await connectToDatabase();
 
+    const user = await authenticateUser(request);
+    if (!user || user.role === "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" });
+
     const product = await Product.findByIdAndUpdate(
-      params.id,
+      id,
       {
         isDeleted: true,
         deletedAt: new Date(),

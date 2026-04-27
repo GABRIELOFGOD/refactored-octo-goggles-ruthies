@@ -8,10 +8,11 @@ export async function PUT(
   { params }: { params: { cartId: string; productId: string } }
 ) {
   try {
+    const { productId, cartId } = await params;
     const body = await request.json();
     await connectToDatabase();
 
-    const cart = await Cart.findById(params.cartId);
+    const cart = await Cart.findById(cartId);
     if (!cart) {
       return NextResponse.json<ApiResponse>(
         { success: false, error: 'Cart not found' },
@@ -20,7 +21,7 @@ export async function PUT(
     }
 
     const item = cart.items.find(
-      (item: any) => item.product.toString() === params.productId
+      (item: any) => item.product.toString() === productId
     );
 
     if (!item) {
@@ -34,7 +35,7 @@ export async function PUT(
       item.quantity = body.quantity;
     } else {
       cart.items = cart.items.filter(
-        (item: any) => item.product.toString() !== params.productId
+        (item: any) => item.product.toString() !== productId
       );
     }
 
@@ -68,9 +69,10 @@ export async function DELETE(
   { params }: { params: { cartId: string; productId: string } }
 ) {
   try {
+    const { cartId, productId } = await params;
     await connectToDatabase();
 
-    const cart = await Cart.findById(params.cartId);
+    const cart = await Cart.findById(cartId);
     if (!cart) {
       return NextResponse.json<ApiResponse>(
         { success: false, error: 'Cart not found' },
@@ -79,7 +81,7 @@ export async function DELETE(
     }
 
     cart.items = cart.items.filter(
-      (item: any) => item.product.toString() !== params.productId
+      (item: any) => item.product.toString() !== productId
     );
 
     await cart.save();

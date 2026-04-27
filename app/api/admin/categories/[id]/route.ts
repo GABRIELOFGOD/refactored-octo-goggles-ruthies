@@ -2,24 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Category } from '@/models/Category';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, ICategory } from '@/types';
-import { auth } from '@/lib/auth';
+import { authenticateUser } from '@/lib/auth-helpers';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
-    const session = await auth();
+        
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
-
-    const category = await Category.findById(params.id);
+    const category = await Category.findById(id);
 
     if (!category || category.isDeleted) {
       return NextResponse.json<ApiResponse>(
@@ -46,21 +42,17 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
-    const session = await auth();
-
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
+    
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const body = await request.json();
     const { name, description, image, parent } = body;
 
     const category = await Category.findByIdAndUpdate(
-      params.id,
+      id,
       {
         name,
         description,
@@ -99,18 +91,14 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     await connectToDatabase();
-    const session = await auth();
-
-    if (!session?.user?.role || session.user.role !== 'admin') {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
+    
+    const user = await authenticateUser(request);
+    if (!user || user.role !== "admin") return NextResponse.json<ApiResponse>({ success: false, error: "Unauthorized" }, { status: 403 });
 
     const category = await Category.findByIdAndUpdate(
-      params.id,
+      id,
       {
         isDeleted: true,
         deletedAt: new Date(),

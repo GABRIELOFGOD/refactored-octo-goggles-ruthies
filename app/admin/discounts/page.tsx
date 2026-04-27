@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { IDiscount } from '@/types';
+import { FormDataType, IDiscount } from '@/types';
 
 export default function DiscountsPage() {
   const [discounts, setDiscounts] = useState<IDiscount[]>([]);
@@ -12,7 +12,7 @@ export default function DiscountsPage() {
   const [page, setPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataType>({
     code: '',
     type: 'percentage' as const,
     value: 0,
@@ -222,10 +222,10 @@ export default function DiscountsPage() {
                 type="number"
                 value={formData.maxUsageCount || ''}
                 onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
+                  setFormData({
+                    ...formData,
                     maxUsageCount: e.target.value ? parseInt(e.target.value) : undefined,
-                  }))
+                  })
                 }
                 className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
               />
