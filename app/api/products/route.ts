@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Product } from '@/models/Product';
+import { Category } from '@/models/Category';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IProduct } from '@/types';
 
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     const total = await Product.countDocuments(query);
     const products = await Product.find(query)
-      .populate('category')
+      // .populate('category')
       .limit(limit)
       .skip((page - 1) * limit)
       .sort({ createdAt: -1 });

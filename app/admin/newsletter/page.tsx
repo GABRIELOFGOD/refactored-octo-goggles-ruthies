@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Mail, Download, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { adminFetch } from '@/lib/admin-helper';
 
 interface Newsletter {
   _id: string;
@@ -40,7 +41,7 @@ export default function NewsletterPage() {
         limit: '20',
       });
 
-      const response = await fetch(`/api/admin/newsletter/subscribers?${query}`);
+      const response = await adminFetch(`/api/admin/newsletter/subscribers?${query}`);
       const data = await response.json();
 
       if (data.success) {
@@ -65,7 +66,7 @@ export default function NewsletterPage() {
           limit: '100',
         });
 
-        const response = await fetch(`/api/admin/newsletter/subscribers?${query}`);
+        const response = await adminFetch(`/api/admin/newsletter/subscribers?${query}`);
         const data = await response.json();
 
         if (data.success) {
@@ -106,7 +107,7 @@ export default function NewsletterPage() {
     }
 
     try {
-      const response = await fetch('/api/admin/newsletter/send', {
+      const response = await adminFetch('/api/admin/newsletter/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(composeData),
@@ -125,7 +126,7 @@ export default function NewsletterPage() {
     if (!confirm('Remove this subscriber?')) return;
 
     try {
-      const response = await fetch(`/api/admin/newsletter/subscribers/${id}`, {
+      const response = await adminFetch(`/api/admin/newsletter/subscribers/${id}`, {
         method: 'DELETE',
       });
 

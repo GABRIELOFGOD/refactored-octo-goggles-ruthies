@@ -5,6 +5,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import StatCard from '@/components/admin/StatCard';
 import { Users, Package, ShoppingCart, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { adminFetch } from '@/lib/admin-helper';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -25,14 +26,14 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/admin/stats');
+      const res = await adminFetch('/api/admin/stats');
       const data = await res.json();
 
       if (data.success) {
         setStats(data.data);
 
         // Fetch status distribution
-        const statusRes = await fetch('/api/admin/stats/status-distribution');
+        const statusRes = await adminFetch('/api/admin/stats/status-distribution');
         const statusData = await statusRes.json();
         if (statusData.success) {
           setStatusData(statusData.data);
@@ -48,7 +49,7 @@ export default function AdminDashboard() {
 
   const fetchChartData = async () => {
     try {
-      const res = await fetch(`/api/admin/stats/chart?range=${range}`);
+      const res = await adminFetch(`/api/admin/stats/chart?range=${range}`);
       const data = await res.json();
 
       if (data.success) {

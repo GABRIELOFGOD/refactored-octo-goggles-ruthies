@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { IProduct, IBanner, IService } from '@/types';
+import { useCurrency } from '@/context/CurrencyContext';
+import { formatPrice } from '@/lib/i18n';
 
 export default function HomePage() {
   const [banners, setBanners] = useState<IBanner[]>([]);
@@ -10,6 +12,8 @@ export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState<IProduct[]>([]);
   const [services, setServices] = useState<IService[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const { currency } = useCurrency();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -106,7 +110,7 @@ export default function HomePage() {
                     {product.name}
                   </h3>
                   <p className="text-secondary font-bold mt-2">
-                    ${product.prices.USD.toFixed(2)}
+                    {formatPrice(product.prices[currency as keyof typeof product.prices], currency)}
                   </p>
                 </Link>
               ))}
@@ -140,7 +144,7 @@ export default function HomePage() {
                     {product.name}
                   </h3>
                   <p className="text-secondary font-bold mt-2">
-                    ${product.prices.USD.toFixed(2)}
+                    {formatPrice(product.prices[currency as keyof typeof product.prices], currency)}
                   </p>
                 </Link>
               ))}
@@ -178,7 +182,7 @@ export default function HomePage() {
                     </h3>
                     <p className="text-gray-600 text-sm mb-4">{service.shortDescription}</p>
                     <p className="text-secondary font-bold">
-                      ${service.prices.USD.toFixed(2)}
+                      {formatPrice(service.prices[currency as keyof typeof service.prices], currency)}
                     </p>
                   </div>
                 </Link>

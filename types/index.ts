@@ -182,6 +182,8 @@ export interface ICart {
   user?: string;
   // sessionId?: string;
   items: CartItem[];
+  isDeleted: boolean;
+  deletedAt?: Date;
   updatedAt: Date;
 }
 
@@ -190,6 +192,8 @@ export interface IWishlist {
   _id: string;
   user: string;
   products: string[];
+  isDeleted: boolean;
+  deletedAt?: Date;
   updatedAt: Date;
 }
 
@@ -327,6 +331,8 @@ export interface ISizeGuide {
   title: string;
   description: string;
   chart: SizeChartRow[];
+  isDeleted: boolean;
+  deletedAt?: Date;
   updatedAt: Date;
 }
 

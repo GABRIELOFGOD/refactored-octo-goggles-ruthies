@@ -1,0 +1,138 @@
+{
+  "nav": {
+    "shop": "Shop",
+    "services": "Services",
+    "sizeGuide": "Size Guide",
+    "trackOrder": "Track Order",
+    "orders": "Orders",
+    "account": "Account",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "menu": "Menu"
+  },
+  "header": {
+    "language": "Language",
+    "currency": "Currency",
+    "english": "English",
+    "french": "Français"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "noResults": "No results found",
+    "backToHome": "Back to Home"
+  },
+  "shop": {
+    "title": "Shop",
+    "addToCart": "Add to Cart",
+    "addToWishlist": "Add to Wishlist",
+    "price": "Price",
+    "quantity": "Quantity",
+    "size": "Size",
+    "color": "Color",
+    "material": "Material",
+    "description": "Description",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "featured": "Featured",
+    "newArrivals": "New Arrivals"
+  },
+  "services": {
+    "title": "Services",
+    "description": "Description",
+    "bookService": "Book Service",
+    "duration": "Duration",
+    "availability": "Availability",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "minutes": "minutes"
+  },
+  "sizeGuide": {
+    "title": "Size Guide",
+    "description": "Find your perfect size",
+    "measurements": "Measurements",
+    "category": "Category",
+    "sizeTips": "Size Tips",
+    "chartInstructions": "Chart Instructions"
+  },
+  "account": {
+    "title": "My Account",
+    "profile": "Profile",
+    "settings": "Settings",
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "address": "Address",
+    "street": "Street Address",
+    "city": "City",
+    "state": "State",
+    "country": "Country",
+    "postalCode": "Postal Code",
+    "preferredCurrency": "Preferred Currency",
+    "preferredLanguage": "Preferred Language",
+    "updateProfile": "Update Profile",
+    "profileUpdated": "Profile updated successfully",
+    "profileUpdateError": "Error updating profile"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "tax": "Tax",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "continueShopping": "Continue Shopping",
+    "removeItem": "Remove from cart"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shippingAddress": "Shipping Address",
+    "billingAddress": "Billing Address",
+    "paymentMethod": "Payment Method",
+    "placeOrder": "Place Order",
+    "orderSummary": "Order Summary",
+    "estimatedDelivery": "Estimated Delivery"
+  },
+  "orders": {
+    "title": "My Orders",
+    "empty": "You have no orders yet",
+    "orderNumber": "Order Number",
+    "date": "Date",
+    "status": "Status",
+    "total": "Total",
+    "viewDetails": "View Details",
+    "trackOrder": "Track Order"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email Address",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember me",
+    "dontHaveAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginSuccess": "Login successful",
+    "registerSuccess": "Registration successful",
+    "loginError": "Login failed",
+    "registerError": "Registration failed"
+  },
+  "wishlist": {
+    "title": "My Wishlist",
+    "empty": "Your wishlist is empty",
+    "addedToWishlist": "Added to wishlist",
+    "removedFromWishlist": "Removed from wishlist",
+    "moveToCart": "Move to Cart"
+  }
+}

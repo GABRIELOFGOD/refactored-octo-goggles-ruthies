@@ -2,10 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Order } from '@/models/Order';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse } from '@/types';
+import { authenticateUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
+    
+    const user = await authenticateUser(request);
+    if (!user || user.role !== 'admin') {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
 
     // Get order status distribution
     const statuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'completed', 'cancelled'];

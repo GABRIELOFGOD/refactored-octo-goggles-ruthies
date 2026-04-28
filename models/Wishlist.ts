@@ -16,10 +16,20 @@ const wishlistSchema = new Schema<WishlistDocument>(
       ref: 'Product',
       default: [],
     } as any,
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: Date,
   },
   {
     timestamps: { createdAt: false, updatedAt: 'updatedAt' },
   }
 );
+
+wishlistSchema.query.notDeleted = function (this: any) {
+  return this.where({ isDeleted: { $ne: true } });
+} as any;
 
 export const Wishlist = mongoose.models.Wishlist || mongoose.model<WishlistDocument>('Wishlist', wishlistSchema);

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import OrderManagementCard from './OrderManagementCard';
 import { Loader2, Search } from 'lucide-react';
+import { adminFetch } from '@/lib/admin-helper';
 
 export default function AdminOrderManagement() {
   const [orders, setOrders] = useState<IOrder[]>([]);
@@ -28,7 +29,7 @@ export default function AdminOrderManagement() {
       if (statusFilter) query += `&status=${statusFilter}`;
       if (searchTerm) query += `&search=${encodeURIComponent(searchTerm)}`;
 
-      const res = await fetch(query);
+      const res = await adminFetch(query);
       const data = await res.json();
 
       if (data.success) {

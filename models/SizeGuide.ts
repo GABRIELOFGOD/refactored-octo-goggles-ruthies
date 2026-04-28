@@ -24,10 +24,20 @@ const sizeGuideSchema = new Schema<SizeGuideDocument>(
       type: [sizeChartRowSchema],
       default: [],
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: Date,
   },
   {
     timestamps: { createdAt: false, updatedAt: 'updatedAt' },
   }
 );
+
+sizeGuideSchema.query.notDeleted = function () {
+  return this.where({ isDeleted: { $ne: true } });
+};
 
 export const SizeGuide = mongoose.models.SizeGuide || mongoose.model<SizeGuideDocument>('SizeGuide', sizeGuideSchema);

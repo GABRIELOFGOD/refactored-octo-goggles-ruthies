@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Search, TrashIcon, Eye } from 'lucide-react';
+import { adminFetch } from '@/lib/admin-helper';
 
 interface User {
   _id: string;
@@ -33,7 +34,7 @@ export default function AdminUsersPage() {
       let query = `/api/admin/users?page=${page}&limit=${limit}`;
       if (search) query += `&search=${encodeURIComponent(search)}`;
 
-      const res = await fetch(query);
+      const res = await adminFetch(query);
       const data = await res.json();
 
       if (data.success) {
@@ -50,9 +51,11 @@ export default function AdminUsersPage() {
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      const res = await fetch(`/api/admin/users/${id}`, {
+      const res = await adminFetch(`/api/admin/users/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({ isActive: !currentStatus }),
       });
 
@@ -74,7 +77,9 @@ export default function AdminUsersPage() {
     if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
     try {
-      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/admin/users/${id}`, {
+        method: 'DELETE'
+      });
       const data = await res.json();
 
       if (data.success) {

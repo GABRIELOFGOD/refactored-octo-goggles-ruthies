@@ -4,10 +4,19 @@ import { User } from '@/models/User';
 import { Product } from '@/models/Product';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse } from '@/types';
+import { authenticateUser } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
+
+    const user = await authenticateUser(request);
+    if (!user || user.role !== 'admin') {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
 
     // Get date range (last 30 days)
     const now = new Date();

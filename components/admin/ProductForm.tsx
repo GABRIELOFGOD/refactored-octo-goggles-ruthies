@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { IProduct, ICategory } from '@/types';
 import { Upload, X, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+import { adminFetch } from '@/lib/admin-helper';
 
 interface ProductFormProps {
   product?: IProduct;
@@ -168,12 +169,9 @@ export default function ProductForm({
       formDataObj.append('files', file);
     }
 
-    const response = await fetch('/api/upload', {
+    const response = await adminFetch('/api/upload', {
       method: 'POST',
-      body: formDataObj,
-      headers: {
-        "authorization": `Bearer ${localStorage.getItem("token")}`
-      }
+      body: formDataObj
     });
 
     if (!response.ok) throw new Error('Upload failed');
@@ -313,11 +311,10 @@ export default function ProductForm({
       // Strip _id from variants to avoid ObjectId validation issues
       const cleanedVariants = formData.variants.map(({ _id, ...rest }: any) => rest);
 
-      const response = await fetch(endpoint, {
+      const response = await adminFetch(endpoint, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          "authorization": `Bearer ${localStorage.getItem("token")}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           ...formData,

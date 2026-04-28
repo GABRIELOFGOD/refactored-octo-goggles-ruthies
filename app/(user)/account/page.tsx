@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/provider/auth-provider';
+import { Currency } from '@/types';
 
 export default function AccountPage() {
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -17,12 +17,11 @@ export default function AccountPage() {
       country: '',
       postalCode: '',
     },
-    preferredCurrency: 'NGN' as const,
-    preferredLanguage: 'en' as const,
+    preferredCurrency: 'NGN',
+    preferredLanguage: 'en',
   });
   
-  const { user, refreshUserData } = useAuth();
-
+  const { user, refreshUserData, isLoading } = useAuth();
   // const fetchUserData = async () => {
   //   try {
   //     setIsLoading(true);
@@ -54,6 +53,24 @@ export default function AccountPage() {
   //   }
   // };
 
+  useEffect(()=>{
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        phone: user.phone || '',
+        address: user.address || {
+          street: '',
+          city: '',
+          state: '',
+          country: '',
+          postalCode: '',
+        },
+        preferredCurrency: user.preferredCurrency || "NGN",
+        preferredLanguage: user.preferredLanguage || "en",
+      });
+    }
+  },[user]);
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name.startsWith('address.')) {
@@ -79,7 +96,10 @@ export default function AccountPage() {
       setIsSaving(true);
       const response = await fetch('/api/user/profile', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `Bearer ${localStorage.getItem("token")}`
+        },
         body: JSON.stringify(formData),
       });
 
@@ -132,7 +152,7 @@ export default function AccountPage() {
               <div>
                 <p className="text-sm text-neutral-600">Member Since</p>
                 <p className="font-semibold text-neutral-900">
-                  {new Date().toLocaleDateString()}
+                  {new Date(user?.createdAt.toString() || "").toLocaleDateString()}
                 </p>
               </div>
             </div>

@@ -5,6 +5,7 @@ import { IOrder } from '@/types';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, Loader2, Mail } from 'lucide-react';
+import { adminFetch } from '@/lib/admin-helper';
 
 export default function OrderManagementCard({ orderId }: { orderId: string }) {
   const [order, setOrder] = useState<IOrder | null>(null);
@@ -30,7 +31,7 @@ export default function OrderManagementCard({ orderId }: { orderId: string }) {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`/api/admin/orders/${orderId}`);
+        const res = await adminFetch(`/api/admin/orders/${orderId}`);
         const data = await res.json();
         if (data.success) {
           setOrder(data.data);
@@ -52,7 +53,7 @@ export default function OrderManagementCard({ orderId }: { orderId: string }) {
     setIsUpdating(true);
 
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
+      const res = await adminFetch(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

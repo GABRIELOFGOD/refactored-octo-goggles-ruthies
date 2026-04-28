@@ -3,6 +3,7 @@ import { Product } from '@/models/Product';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IProduct } from '@/types';
 import { authenticateUser } from '@/lib/auth-helpers';
+import { isValidObjectId } from 'mongoose';
 
 export async function GET(
   request: NextRequest,
@@ -10,16 +11,21 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    console.log('Fetched product slug:', id);
     await connectToDatabase();
 
-    // Try to find by ID or slug
-    let product = await Product.findOne({
-      $or: [
-        { _id: id },
-        { slug: id },
-      ],
+    let product: IProduct | null = null;
+    if (id && isValidObjectId(id)) {
+      product = await Product.findOne({
+        _id: id,
+        isDeleted: { $ne: true },
+      }).populate('category');
+    } else {
+      product = await Product.findOne({
+      slug: id,
       isDeleted: { $ne: true },
     }).populate('category');
+    }
 
     if (!product) {
       return NextResponse.json<ApiResponse>(

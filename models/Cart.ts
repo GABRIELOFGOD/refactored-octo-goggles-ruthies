@@ -33,10 +33,20 @@ const cartSchema = new Schema<CartDocument>(
       type: [cartItemSchema],
       default: [],
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: Date,
   },
   {
     timestamps: { createdAt: false, updatedAt: 'updatedAt' },
   }
 );
+
+cartSchema.query.notDeleted = function () {
+  return this.where({ isDeleted: { $ne: true } });
+};
 
 export const Cart = mongoose.models.Cart || mongoose.model<CartDocument>('Cart', cartSchema);

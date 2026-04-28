@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 import { ICategory } from '@/types';
+import { adminFetch } from '@/lib/admin-helper';
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<ICategory[]>([]);
@@ -28,12 +29,7 @@ export default function AdminCategoriesPage() {
       let query = `/api/admin/categories?page=${page}&limit=${limit}`;
       if (search) query += `&search=${encodeURIComponent(search)}`;
 
-      const res = await fetch(query, {
-        method: "GET",
-        headers: {
-          "authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-      });
+      const res = await adminFetch(query);
       const data = await res.json();
 
       if (data.success) {
@@ -62,11 +58,10 @@ export default function AdminCategoriesPage() {
         : '/api/admin/categories';
       const method = editingId ? 'PUT' : 'POST';
 
-      const res = await fetch(url, {
+      const res = await adminFetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          "authorization": `Bearer ${localStorage.getItem("token")}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData),
       });
@@ -92,7 +87,7 @@ export default function AdminCategoriesPage() {
     if (!confirm(`Delete "${name}"?`)) return;
 
     try {
-      const res = await fetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
+      const res = await adminFetch(`/api/admin/categories/${id}`, { method: 'DELETE' });
       const data = await res.json();
 
       if (data.success) {

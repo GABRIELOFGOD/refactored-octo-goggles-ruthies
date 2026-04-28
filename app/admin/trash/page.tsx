@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { RotateCcw, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { adminFetch } from '@/lib/admin-helper';
 
 interface DeletedItem {
   _id: string;
@@ -24,7 +25,7 @@ export default function TrashPage() {
   const fetchDeletedItems = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/admin/trash?type=${filterType}`);
+      const response = await adminFetch(`/api/admin/trash?type=${filterType}`);
       const data = await response.json();
 
       if (data.success) {
@@ -39,7 +40,7 @@ export default function TrashPage() {
 
   const handleRestore = async (id: string, type: string) => {
     try {
-      const response = await fetch(`/api/admin/trash/restore`, {
+      const response = await adminFetch(`/api/admin/trash/restore`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, type }),
@@ -58,7 +59,7 @@ export default function TrashPage() {
     if (!confirm('Permanently delete? This cannot be undone.')) return;
 
     try {
-      const response = await fetch(`/api/admin/trash/permanent`, {
+      const response = await adminFetch(`/api/admin/trash/permanent`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, type }),

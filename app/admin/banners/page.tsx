@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { IBanner } from '@/types';
+import { BannerPosition, IBanner } from '@/types';
+import { adminFetch } from '@/lib/admin-helper';
 
 export default function BannersPage() {
   const [banners, setBanners] = useState<IBanner[]>([]);
@@ -19,21 +20,32 @@ export default function BannersPage() {
     ctaLink: '',
     image: '',
     mobileImage: '',
-    position: 'hero' as const,
+    position: 'hero' as BannerPosition,
     sortOrder: 0,
     isActive: true,
     startDate: '',
     endDate: '',
   });
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     fetchBanners();
   }, [page]);
 
+  useEffect(() => {
+    return () => {
+      if (imagePreview && selectedImageFile) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview, selectedImageFile]);
+
   const fetchBanners = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/admin/banners?page=${page}&limit=10`);
+      const response = await adminFetch(`/api/admin/banners?page=${page}&limit=10`);
       const data = await response.json();
       if (data.success) {
         setBanners(data.data);
@@ -45,23 +57,73 @@ export default function BannersPage() {
     }
   };
 
+  const handleImageFile = (file: File | null) => {
+    if (!file) {
+      setSelectedImageFile(null);
+      setImagePreview('');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    setSelectedImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setFormData((prev) => ({ ...prev, image: '' }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    handleImageFile(file);
+  };
+
+  const handleImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0] ?? null;
+    handleImageFile(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.image) {
+    if (!formData.title || (!formData.image && !selectedImageFile)) {
       toast.error('Title and image required');
       return;
     }
 
     try {
+      let imageUrl = formData.image;
+
+      if (editingId && selectedImageFile) {
+        if (selectedImageFile) {
+          const uploadPayload = new FormData();
+          uploadPayload.append('files', selectedImageFile);
+
+          const uploadResponse = await adminFetch('/api/upload', {
+            method: 'POST',
+            body: uploadPayload,
+          });
+          const uploadResult = await uploadResponse.json();
+
+          if (!uploadResponse.ok) {
+            throw new Error('Image upload failed');
+          }
+
+          imageUrl = uploadResult.urls[0];
+        }
+      }
+
       const url = editingId ? `/api/admin/banners/${editingId}` : '/api/admin/banners';
       const method = editingId ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await adminFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          image: imageUrl,
           startDate: formData.startDate ? new Date(formData.startDate) : undefined,
           endDate: formData.endDate ? new Date(formData.endDate) : undefined,
         }),
@@ -72,6 +134,8 @@ export default function BannersPage() {
       toast.success(editingId ? 'Updated' : 'Created');
       setShowForm(false);
       setEditingId(null);
+      setSelectedImageFile(null);
+      setImagePreview('');
       setFormData({
         title: '',
         subtitle: '',
@@ -95,7 +159,7 @@ export default function BannersPage() {
     if (!confirm('Delete banner?')) return;
 
     try {
-      const response = await fetch(`/api/admin/banners/${id}`, { method: 'DELETE' });
+      const response = await adminFetch(`/api/admin/banners/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error();
       toast.success('Deleted');
       fetchBanners();
@@ -138,6 +202,7 @@ export default function BannersPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
+
             <div>
               <label className="block text-sm font-semibold mb-2">Title</label>
               <input
@@ -175,6 +240,36 @@ export default function BannersPage() {
                 value={formData.ctaLink}
                 onChange={(e) => setFormData((prev) => ({ ...prev, ctaLink: e.target.value }))}
                 className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2">Banner Image</label>
+            <div
+              onDrop={handleImageDrop}
+              onDragOver={(e) => e.preventDefault()}
+              onClick={() => fileInputRef.current?.click()}
+              className="group relative flex h-44 flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-300 bg-neutral-50 p-4 text-center text-neutral-500 transition hover:border-secondary hover:bg-white cursor-pointer"
+            >
+              {imagePreview || formData.image ? (
+                <img
+                  src={imagePreview || formData.image}
+                  alt="Banner preview"
+                  className="max-h-full max-w-full rounded-lg object-contain"
+                />
+              ) : (
+                <div>
+                  <p className="font-semibold">Drag & drop an image here</p>
+                  <p className="text-xs">or click to browse</p>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
               />
             </div>
           </div>
@@ -267,6 +362,24 @@ export default function BannersPage() {
                     <td className="px-6 py-4 flex gap-2">
                       <button
                         className="p-2 hover:bg-blue-100 rounded text-blue-600"
+                        onClick={() => {
+                          setEditingId(banner._id);
+                          setFormData({
+                            title: banner.title,
+                            subtitle: banner.subtitle,
+                            ctaText: banner.ctaText,
+                            ctaLink: banner.ctaLink,
+                            image: banner.image,
+                            mobileImage: banner.mobileImage ?? '',
+                            position: banner.position,
+                            sortOrder: banner.sortOrder ?? 0,
+                            isActive: banner.isActive,
+                            startDate: banner.startDate ? String(banner.startDate) : '',
+                            endDate: banner.endDate ? String(banner.endDate) : '',
+                          });
+                          setImagePreview( `${banner.image}`);
+                          setShowForm(true);
+                        }}
                       >
                         <Edit className="w-4 h-4" />
                       </button>

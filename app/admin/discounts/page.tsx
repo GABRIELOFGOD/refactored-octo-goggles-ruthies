@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { FormDataType, IDiscount } from '@/types';
+import { adminFetch } from '@/lib/admin-helper';
 
 export default function DiscountsPage() {
   const [discounts, setDiscounts] = useState<IDiscount[]>([]);
@@ -31,7 +32,7 @@ export default function DiscountsPage() {
   const fetchDiscounts = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/admin/discounts?page=${page}&limit=10`);
+      const response = await adminFetch(`/api/admin/discounts?page=${page}&limit=10`);
       const data = await response.json();
       if (data.success) {
         setDiscounts(data.data);
@@ -57,7 +58,7 @@ export default function DiscountsPage() {
         : '/api/admin/discounts';
       const method = editingId ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await adminFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,7 +82,7 @@ export default function DiscountsPage() {
     if (!confirm('Delete?')) return;
 
     try {
-      const response = await fetch(`/api/admin/discounts/${id}`, {
+      const response = await adminFetch(`/api/admin/discounts/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error();

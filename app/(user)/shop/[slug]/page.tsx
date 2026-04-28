@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { Heart } from 'lucide-react';
+import { useCurrency } from '@/context/CurrencyContext';
+import { formatPrice } from '@/lib/i18n';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -24,6 +26,8 @@ export default function ProductDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+
+  const { currency } = useCurrency();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -80,12 +84,12 @@ export default function ProductDetailPage() {
 
     setIsAddingToCart(true);
     try {
-      const price = product.prices?.NGN || 0;
+      const price = product.prices?.[currency] || 0;
       await addToCart({
         product: product._id,
         quantity,
         price,
-        currency: 'NGN',
+        currency,
         variant: selectedVariant,
       });
       toast.success(`${quantity} item(s) added to cart!`);
@@ -173,7 +177,7 @@ export default function ProductDetailPage() {
             <div className="space-y-2">
               <div className="flex items-baseline gap-2">
                 <p className="text-3xl font-bold text-secondary">
-                  ${product.prices.USD.toFixed(2)}
+                  {formatPrice(product.prices?.[currency] || 0, currency)}
                 </p>
               </div>
               <div className="flex items-center gap-4">

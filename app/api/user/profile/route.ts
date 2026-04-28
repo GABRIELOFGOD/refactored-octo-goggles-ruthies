@@ -1,10 +1,9 @@
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth';
+
 import { NextRequest, NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/mongoose';
 import { User } from '@/models/User';
 import { ApiResponse, JwtPayload } from '@/types';
-import { verifyToken } from '@/lib/auth-helpers';
+import { authenticateUser, verifyToken } from '@/lib/auth-helpers';
 
 // GET - Fetch user profile
 export async function GET(request: NextRequest) {
@@ -44,9 +43,8 @@ export async function GET(request: NextRequest) {
 // PUT - Update user profile
 export async function PUT(request: NextRequest) {
   try {
-    const session = (await getServerSession(authConfig)) as any;
-
-    if (!session?.user?.id) {
+    const user = await authenticateUser(request);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -55,8 +53,8 @@ export async function PUT(request: NextRequest) {
 
     await connectToDatabase();
 
-    const user = await User.findByIdAndUpdate(
-      session.user.id,
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
       {
         name,
         phone,
@@ -68,13 +66,13 @@ export async function PUT(request: NextRequest) {
       { new: true, runValidators: true }
     ).select('-passwordHash');
 
-    if (!user) {
+    if (!updatedUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
-      data: user,
+      data: updatedUser,
     });
   } catch (error) {
     console.error('Error updating user profile:', error);

@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { IService } from '@/types';
 import Image from 'next/image';
+import { adminFetch } from '@/lib/admin-helper';
 
 export default function ServicesPage() {
   const [services, setServices] = useState<IService[]>([]);
@@ -40,7 +41,7 @@ export default function ServicesPage() {
         limit: '10',
       });
 
-      const response = await fetch(`/api/admin/services?${query}`);
+      const response = await adminFetch(`/api/admin/services?${query}`);
       const data = await response.json();
 
       if (data.success) {
@@ -65,7 +66,7 @@ export default function ServicesPage() {
       const url = editingId ? `/api/admin/services/${editingId}` : '/api/admin/services';
       const method = editingId ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await adminFetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -115,7 +116,7 @@ export default function ServicesPage() {
     if (!confirm('Are you sure?')) return;
 
     try {
-      const response = await fetch(`/api/admin/services/${id}`, {
+      const response = await adminFetch(`/api/admin/services/${id}`, {
         method: 'DELETE',
       });
 

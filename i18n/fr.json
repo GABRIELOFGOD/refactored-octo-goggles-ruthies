@@ -1,0 +1,138 @@
+{
+  "nav": {
+    "shop": "Boutique",
+    "services": "Services",
+    "sizeGuide": "Guide des Tailles",
+    "trackOrder": "Suivre la Commande",
+    "orders": "Commandes",
+    "account": "Compte",
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "logout": "Déconnexion",
+    "menu": "Menu"
+  },
+  "header": {
+    "language": "Langue",
+    "currency": "Devise",
+    "english": "English",
+    "french": "Français"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "noResults": "Aucun résultat trouvé",
+    "backToHome": "Retour à l'accueil"
+  },
+  "shop": {
+    "title": "Boutique",
+    "addToCart": "Ajouter au Panier",
+    "addToWishlist": "Ajouter aux Favoris",
+    "price": "Prix",
+    "quantity": "Quantité",
+    "size": "Taille",
+    "color": "Couleur",
+    "material": "Matériau",
+    "description": "Description",
+    "inStock": "En Stock",
+    "outOfStock": "Rupture de Stock",
+    "featured": "En Vedette",
+    "newArrivals": "Nouveautés"
+  },
+  "services": {
+    "title": "Services",
+    "description": "Description",
+    "bookService": "Réserver un Service",
+    "duration": "Durée",
+    "availability": "Disponibilité",
+    "available": "Disponible",
+    "unavailable": "Non Disponible",
+    "minutes": "minutes"
+  },
+  "sizeGuide": {
+    "title": "Guide des Tailles",
+    "description": "Trouvez votre taille parfaite",
+    "measurements": "Mesures",
+    "category": "Catégorie",
+    "sizeTips": "Conseils de Taille",
+    "chartInstructions": "Instructions du Tableau"
+  },
+  "account": {
+    "title": "Mon Compte",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "name": "Nom Complet",
+    "phone": "Numéro de Téléphone",
+    "address": "Adresse",
+    "street": "Adresse",
+    "city": "Ville",
+    "state": "État/Province",
+    "country": "Pays",
+    "postalCode": "Code Postal",
+    "preferredCurrency": "Devise Préférée",
+    "preferredLanguage": "Langue Préférée",
+    "updateProfile": "Mettre à Jour le Profil",
+    "profileUpdated": "Profil mis à jour avec succès",
+    "profileUpdateError": "Erreur lors de la mise à jour du profil"
+  },
+  "cart": {
+    "title": "Panier d'Achat",
+    "empty": "Votre panier est vide",
+    "subtotal": "Sous-total",
+    "shipping": "Expédition",
+    "tax": "Taxe",
+    "total": "Total",
+    "checkout": "Passer la Commande",
+    "continueShopping": "Continuer les Achats",
+    "removeItem": "Retirer du panier"
+  },
+  "checkout": {
+    "title": "Passer la Commande",
+    "shippingAddress": "Adresse de Livraison",
+    "billingAddress": "Adresse de Facturation",
+    "paymentMethod": "Mode de Paiement",
+    "placeOrder": "Passer la Commande",
+    "orderSummary": "Résumé de la Commande",
+    "estimatedDelivery": "Livraison Estimée"
+  },
+  "orders": {
+    "title": "Mes Commandes",
+    "empty": "Vous n'avez pas encore de commandes",
+    "orderNumber": "Numéro de Commande",
+    "date": "Date",
+    "status": "Statut",
+    "total": "Total",
+    "viewDetails": "Voir les Détails",
+    "trackOrder": "Suivre la Commande"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "email": "Adresse E-mail",
+    "password": "Mot de Passe",
+    "confirmPassword": "Confirmer le Mot de Passe",
+    "forgotPassword": "Mot de passe oublié?",
+    "rememberMe": "Se souvenir de moi",
+    "dontHaveAccount": "Vous n'avez pas de compte?",
+    "alreadyHaveAccount": "Vous avez déjà un compte?",
+    "loginSuccess": "Connexion réussie",
+    "registerSuccess": "Inscription réussie",
+    "loginError": "Échec de la connexion",
+    "registerError": "Échec de l'inscription"
+  },
+  "wishlist": {
+    "title": "Mes Favoris",
+    "empty": "Votre liste de favoris est vide",
+    "addedToWishlist": "Ajouté aux favoris",
+    "removedFromWishlist": "Retiré des favoris",
+    "moveToCart": "Déplacer au Panier"
+  }
+}
