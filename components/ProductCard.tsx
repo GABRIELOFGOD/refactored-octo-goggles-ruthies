@@ -92,7 +92,7 @@ export default function ProductCard({ product, onWishlistChange }: ProductCardPr
     <Link href={`/shop/${product.slug || product._id}`}>
       <div className="group cursor-pointer h-full flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300">
         {/* Image Container */}
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-neutral-50 to-neutral-100">
+        <div className="relative aspect-square overflow-hidden bg-linear-to-br from-neutral-50 to-neutral-100">
           {currentImage && (
             <Image
               src={currentImage}
@@ -106,7 +106,7 @@ export default function ProductCard({ product, onWishlistChange }: ProductCardPr
           {/* Badges Container */}
           <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
             {isNew && (
-              <span className="bg-gradient-to-r from-primary to-secondary text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+              <span className="bg-linear-to-r from-primary to-secondary text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                 {t(language, 'shop.newArrivals')}
               </span>
             )}
@@ -193,9 +193,9 @@ export default function ProductCard({ product, onWishlistChange }: ProductCardPr
           </h3>
 
           {/* Product Description */}
-          {product.shortDescription && (
+          {product.description && (
             <p className="text-xs text-neutral-600 line-clamp-2 mb-3">
-              {product.shortDescription}
+              {product.description}
             </p>
           )}
 

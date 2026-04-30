@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Language } from '@/lib/i18n';
 import { useAuth } from '@/provider/auth-provider';
+import { getGeolocationWithCache } from '@/lib/geolocation';
 
 interface LanguageContextType {
   language: Language;
@@ -14,22 +15,54 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>('en');
   const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { user } = useAuth();
 
   useEffect(() => {
     setIsClient(true);
-    const savedLanguage = user?.preferredLanguage || localStorage.getItem('language') as Language || "en";
-    if (savedLanguage && ['en', 'fr'].includes(savedLanguage)) {
-      setLanguageState(savedLanguage);
-    } else {
-      // Try to get from browser language
+    initializeLanguage();
+  }, [user]);
+
+  const initializeLanguage = async () => {
+    try {
+      setIsLoading(true);
+
+      // If user is logged in, use their preference
+      if (user?.preferredLanguage) {
+        setLanguageState(user.preferredLanguage as Language);
+        return;
+      }
+
+      // Check localStorage first
+      const savedLanguage = localStorage.getItem('language') as Language;
+      if (savedLanguage && ['en', 'fr'].includes(savedLanguage)) {
+        setLanguageState(savedLanguage);
+        return;
+      }
+
+      // For guests, try geolocation
+      if (!user) {
+        try {
+          const geoData = await getGeolocationWithCache();
+          const geoLang = (geoData.language === 'fr' ? 'fr' : 'en') as Language;
+          setLanguageState(geoLang);
+          localStorage.setItem('language', geoLang);
+          return;
+        } catch (error) {
+          console.error('Geolocation detection failed:', error);
+        }
+      }
+
+      // Try browser language as fallback
       const browserLang = navigator.language.split('-')[0];
-      const lang = browserLang === 'fr' ? 'fr' : 'en';
+      const lang = (browserLang === 'fr' ? 'fr' : 'en') as Language;
       setLanguageState(lang);
       localStorage.setItem('language', lang);
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
+  };
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
@@ -43,7 +76,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <LanguageContext.Provider value={{ language: isClient ? language : 'en', setLanguage }}>
+    <LanguageContext.Provider value={{ language: isClient && !isLoading ? language : 'en', setLanguage }}>
       {children}
     </LanguageContext.Provider>
   );

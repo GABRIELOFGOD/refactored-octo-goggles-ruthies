@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { ServiceBookingModal } from "./ServiceBookingModal";
 import { IService } from "@/types";
 import { useLanguage } from "@/context/LanguageContext";
-import { t } from "@/lib/i18n";
+import { useCurrency } from "@/context/CurrencyContext";
+import { formatPrice, t } from "@/lib/i18n";
 
 const ServiceGrid = () => {
   const [services, setServices] = useState<IService[]>([]);
@@ -13,6 +14,7 @@ const ServiceGrid = () => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const { getServices } = useService();
   const { language } = useLanguage();
+  const { currency } = useCurrency();
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -90,7 +92,7 @@ const ServiceGrid = () => {
                       </p>
                       {service.prices.NGN > 0 || service.prices.USD > 0 ? (
                         <p className="text-2xl font-bold text-secondary">
-                          ₦{service.prices.NGN?.toLocaleString() || 'Free'}
+                          {formatPrice(service.prices[currency as keyof typeof service.prices], currency) || 'Free'}
                         </p>
                       ) : (
                         <p className="text-2xl font-bold text-green-600">

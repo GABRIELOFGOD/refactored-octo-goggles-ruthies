@@ -1,6 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useLanguage } from '@/context/LanguageContext';
+import { useCurrency } from '@/context/CurrencyContext';
+import { t, convertCurrency } from '@/lib/i18n';
+import { Filter } from 'lucide-react';
 
 interface ProductFiltersProps {
   onFilterChange: (filters: {
@@ -9,6 +13,7 @@ interface ProductFiltersProps {
     sizes?: string[];
     colors?: string[];
     sort?: string;
+    currency?: string;
   }) => void;
   availableCategories: Array<{ _id: string; name: string }>;
 }
@@ -18,50 +23,76 @@ export default function ProductFilters({
   availableCategories,
 }: ProductFiltersProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('newest');
 
+  const { language } = useLanguage();
+  const { currency } = useCurrency();
+
+  // Calculate max price based on currency
+  const maxPriceNGN = 100000;
+  const maxPriceConverted = convertCurrency(maxPriceNGN, 'NGN', currency);
+
   const handleFilterChange = () => {
     onFilterChange({
       category: selectedCategory || undefined,
-      priceRange: priceRange[1] < 1000 ? priceRange : undefined,
+      priceRange: priceRange[1] < maxPriceConverted ? priceRange : undefined,
       sizes: selectedSizes.length > 0 ? selectedSizes : undefined,
       colors: selectedColors.length > 0 ? selectedColors : undefined,
       sort: sortBy,
+      currency,
     });
   };
 
   const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
   const colors = ['Black', 'White', 'Gold', 'Silver', 'Navy', 'Burgundy', 'Blush'];
 
+  const currencySymbols: Record<string, string> = {
+    NGN: '₦',
+    USD: '$',
+    GBP: '£',
+    EUR: '€',
+  };
+
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+    <div className="bg-white rounded-lg border border-neutral-200 p-6 space-y-6 shadow-sm sticky top-4">
+      <div className="flex items-center gap-2 mb-4">
+        <Filter className="w-5 h-5 text-primary" />
+        <h2 className="text-lg font-bold text-primary">{t(language, 'shop.filters')}</h2>
+      </div>
+
       {/* Sort */}
-      <div>
-        <h3 className="font-bold text-gray-900 mb-3">Sort By</h3>
+      <div className="border-b border-neutral-200 pb-6">
+        <h3 className="font-bold text-neutral-900 mb-3 text-sm">{t(language, 'shop.sortBy')}</h3>
         <select
           value={sortBy}
           onChange={(e) => {
             setSortBy(e.target.value);
             handleFilterChange();
           }}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
         >
-          <option value="newest">Newest</option>
-          <option value="price-low">Price: Low to High</option>
-          <option value="price-high">Price: High to Low</option>
-          <option value="popular">Most Popular</option>
+          <option value="newest">{t(language, 'shop.newest')}</option>
+          <option value="price-low">{t(language, 'shop.priceLow')}</option>
+          <option value="price-high">{t(language, 'shop.priceHigh')}</option>
+          <option value="popular">{t(language, 'shop.popular')}</option>
         </select>
+      </div>
+
+      {/* Currency Display */}
+      <div className="bg-light-bg rounded-lg p-3 border border-secondary/20">
+        <p className="text-xs text-neutral-600 font-semibold">{t(language, 'header.currency')}</p>
+        <p className="text-lg font-bold text-secondary">{currency} ({currencySymbols[currency]})</p>
       </div>
 
       {/* Categories */}
       {availableCategories.length > 0 && (
-        <div>
-          <h3 className="font-bold text-gray-900 mb-3">Category</h3>
+        <div className="border-b border-neutral-200 pb-6">
+          <h3 className="font-bold text-neutral-900 mb-3 text-sm">{t(language, 'shop.category')}</h3>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex items-center gap-2 cursor-pointer hover:text-secondary transition-colors">
               <input
                 type="radio"
                 name="category"
@@ -69,14 +100,14 @@ export default function ProductFilters({
                 checked={selectedCategory === ''}
                 onChange={(e) => {
                   setSelectedCategory(e.target.value);
-                  onFilterChange({ sort: sortBy });
+                  onFilterChange({ sort: sortBy, currency });
                 }}
-                className="w-4 h-4"
+                className="w-4 h-4 accent-secondary"
               />
-              <span className="text-sm text-gray-700">All Categories</span>
+              <span className="text-sm text-neutral-700">{t(language, 'shop.allCategories')}</span>
             </label>
             {availableCategories.map((cat) => (
-              <label key={cat._id} className="flex items-center gap-2 cursor-pointer">
+              <label key={cat._id} className="flex items-center gap-2 cursor-pointer hover:text-secondary transition-colors">
                 <input
                   type="radio"
                   name="category"
@@ -86,9 +117,9 @@ export default function ProductFilters({
                     setSelectedCategory(e.target.value);
                     handleFilterChange();
                   }}
-                  className="w-4 h-4"
+                  className="w-4 h-4 accent-secondary"
                 />
-                <span className="text-sm text-gray-700">{cat.name}</span>
+                <span className="text-sm text-neutral-700">{cat.name}</span>
               </label>
             ))}
           </div>
@@ -96,31 +127,41 @@ export default function ProductFilters({
       )}
 
       {/* Price Range */}
-      <div>
-        <h3 className="font-bold text-gray-900 mb-3">Price Range</h3>
-        <div className="space-y-2">
+      <div className="border-b border-neutral-200 pb-6">
+        <h3 className="font-bold text-neutral-900 mb-3 text-sm">{t(language, 'shop.priceRange')}</h3>
+        <div className="space-y-4">
           <input
             type="range"
             min="0"
-            max="1000"
+            max={Math.round(maxPriceConverted)}
             value={priceRange[1]}
             onChange={(e) => {
               const newRange: [number, number] = [priceRange[0], parseInt(e.target.value)];
               setPriceRange(newRange);
               handleFilterChange();
             }}
-            className="w-full"
+            className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-secondary"
           />
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>${priceRange[0]}</span>
-            <span>${priceRange[1]}</span>
+          <div className="flex justify-between items-center bg-light-bg p-3 rounded-lg border border-neutral-200">
+            <div className="text-center">
+              <p className="text-xs text-neutral-500 mb-1">{t(language, 'shop.min')}</p>
+              <p className="font-bold text-primary text-sm">
+                {currencySymbols[currency]}{priceRange[0].toLocaleString()}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-neutral-500 mb-1">{t(language, 'shop.max')}</p>
+              <p className="font-bold text-secondary text-sm">
+                {currencySymbols[currency]}{Math.round(priceRange[1]).toLocaleString()}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Sizes */}
-      <div>
-        <h3 className="font-bold text-gray-900 mb-3">Size</h3>
+      <div className="border-b border-neutral-200 pb-6">
+        <h3 className="font-bold text-neutral-900 mb-3 text-sm">{t(language, 'shop.size')}</h3>
         <div className="flex flex-wrap gap-2">
           {sizes.map((size) => (
             <button
@@ -132,10 +173,10 @@ export default function ProductFilters({
                 setSelectedSizes(newSizes);
                 handleFilterChange();
               }}
-              className={`px-3 py-1 rounded-md border-2 text-sm font-medium transition-all ${
+              className={`px-3 py-2 rounded-lg border-2 text-xs font-bold transition-all ${
                 selectedSizes.includes(size)
-                  ? 'border-primary bg-primary text-white'
-                  : 'border-gray-300 text-gray-700 hover:border-primary'
+                  ? 'border-secondary bg-secondary text-white'
+                  : 'border-neutral-300 text-neutral-700 hover:border-secondary'
               }`}
             >
               {size}
@@ -145,8 +186,8 @@ export default function ProductFilters({
       </div>
 
       {/* Colors */}
-      <div>
-        <h3 className="font-bold text-gray-900 mb-3">Color</h3>
+      <div className="border-b border-neutral-200 pb-6">
+        <h3 className="font-bold text-neutral-900 mb-3 text-sm">{t(language, 'shop.color')}</h3>
         <div className="flex flex-wrap gap-2">
           {colors.map((color) => (
             <button
@@ -158,10 +199,10 @@ export default function ProductFilters({
                 setSelectedColors(newColors);
                 handleFilterChange();
               }}
-              className={`px-3 py-1 rounded-md border-2 text-sm font-medium transition-all ${
+              className={`px-3 py-2 rounded-lg border-2 text-xs font-bold transition-all ${
                 selectedColors.includes(color)
-                  ? 'border-primary bg-primary text-white'
-                  : 'border-gray-300 text-gray-700 hover:border-primary'
+                  ? 'border-secondary bg-secondary text-white'
+                  : 'border-neutral-300 text-neutral-700 hover:border-secondary'
               }`}
             >
               {color}
@@ -174,15 +215,15 @@ export default function ProductFilters({
       <button
         onClick={() => {
           setSelectedCategory('');
-          setPriceRange([0, 1000]);
+          setPriceRange([0, maxPriceConverted]);
           setSelectedSizes([]);
           setSelectedColors([]);
           setSortBy('newest');
-          onFilterChange({});
+          onFilterChange({ currency });
         }}
-        className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition-all"
+        className="w-full bg-linear-to-r from-neutral-100 to-neutral-50 text-neutral-700 py-3 rounded-lg font-bold hover:from-neutral-200 hover:to-neutral-100 transition-all border border-neutral-200"
       >
-        Reset Filters
+        {t(language, 'shop.resetFilters')}
       </button>
     </div>
   );

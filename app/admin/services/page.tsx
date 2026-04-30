@@ -198,6 +198,7 @@ export default function ServicesPage() {
                   <option value="consultation">Consultation</option>
                   <option value="styling">Styling</option>
                   <option value="fashion-designing">Fashion Designing</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
             </div>
@@ -205,7 +206,7 @@ export default function ServicesPage() {
             {formData.type === 'consultation' && (
               <div>
                 <label className="block text-sm font-semibold text-primary mb-2">
-                  Consultation Type
+                  Consultation Type (Optional)
                 </label>
                 <select
                   value={formData.consultationType}
@@ -217,7 +218,7 @@ export default function ServicesPage() {
                   }
                   className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
                 >
-                  <option value="">Select type</option>
+                  <option value="">None</option>
                   <option value="bridal">Bridal</option>
                   <option value="wardrobe-audit">Wardrobe Audit</option>
                   <option value="personal-shopping">Personal Shopping</option>

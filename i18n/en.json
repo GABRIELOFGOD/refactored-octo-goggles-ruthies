@@ -45,7 +45,19 @@
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",
     "featured": "Featured",
-    "newArrivals": "New Arrivals"
+    "newArrivals": "New Arrivals",
+    "filters": "Filters",
+    "sortBy": "Sort By",
+    "newest": "Newest",
+    "priceLow": "Price: Low to High",
+    "priceHigh": "Price: High to Low",
+    "popular": "Most Popular",
+    "category": "Category",
+    "allCategories": "All Categories",
+    "priceRange": "Price Range",
+    "min": "Min",
+    "max": "Max",
+    "resetFilters": "Reset Filters"
   },
   "services": {
     "title": "Services",

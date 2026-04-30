@@ -23,13 +23,13 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   // Get authorization header with token
   const getAuthHeader = () => {
     const token = localStorage.getItem('authToken');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
     if (token) {
-      return {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      };
+      headers['Authorization'] = `Bearer ${token}`;
     }
-    return { 'Content-Type': 'application/json' };
+    return headers;
   };
 
   // Initialize wishlist from API or localStorage
@@ -41,7 +41,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
 
         // If user is logged in, fetch their wishlist
-        if (user?.id) {
+        if (user?._id) {
           const res = await fetch('/api/wishlist', {
             headers: getAuthHeader(),
           });
@@ -76,7 +76,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     };
 
     initializeWishlist();
-  }, [user?.id, authLoading]);
+  }, [user?._id, authLoading]);
 
   // Persist to localStorage
   useEffect(() => {

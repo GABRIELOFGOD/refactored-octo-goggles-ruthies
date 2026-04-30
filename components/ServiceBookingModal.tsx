@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import { IService } from '@/types';
 import { useAuth } from '@/provider/auth-provider';
 import { useLanguage } from '@/context/LanguageContext';
-import { t } from '@/lib/i18n';
+import { formatPrice, t } from '@/lib/i18n';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface ServiceBookingModalProps {
   isOpen: boolean;
@@ -26,6 +27,9 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [note, setNote] = useState('');
+
+  const { currency } = useCurrency();
 
   if (!isOpen || !service) return null;
 
@@ -67,13 +71,13 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
         },
         body: JSON.stringify({
           serviceId: service._id,
           scheduledDate: selectedDate,
           scheduledTime: selectedTime,
-          notes: '',
+          notes: note,
         }),
       });
 
@@ -87,6 +91,7 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
       toast.success('Service booked successfully!');
       setSelectedDate('');
       setSelectedTime('');
+      setNote('');
       onClose();
       onSuccess?.();
     } catch (error) {
@@ -98,8 +103,8 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+    <div className="fixed h-screen inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white h-full overflow-y-auto rounded-lg shadow-xl max-w-md w-full">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-neutral-200">
           <h2 className="text-xl font-bold text-primary">Book Service</h2>
@@ -141,7 +146,7 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
               <label className="block text-sm font-semibold text-primary mb-2">Price</label>
               <input
                 type="text"
-                value={`${service.prices.NGN ? `₦${service.prices.NGN}` : 'Free'}`}
+                value={formatPrice(service.prices[currency as keyof typeof service.prices], currency) || 'Free'}
                 disabled
                 className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-neutral-50 text-neutral-700"
               />
@@ -186,6 +191,17 @@ export const ServiceBookingModal: React.FC<ServiceBookingModalProps> = ({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-primary mb-2">Note</label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Add any special requests or notes..."
+              className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary"
+              rows={4}
+            />
           </div>
 
           {/* Note */}

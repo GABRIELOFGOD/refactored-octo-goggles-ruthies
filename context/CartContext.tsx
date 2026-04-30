@@ -27,13 +27,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Get authorization header with token
   const getAuthHeader = () => {
     const token = localStorage.getItem('authToken');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
     if (token) {
-      return {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      };
+      headers['Authorization'] = `Bearer ${token}`;
     }
-    return { 'Content-Type': 'application/json' };
+    return headers;
   };
 
   // Initialize cart
@@ -45,7 +45,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true);
 
         // If user is logged in, fetch their cart
-        if (user?.id) {
+        if (user?._id) {
           const res = await fetch('/api/cart', {
             headers: getAuthHeader(),
           });
@@ -90,7 +90,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     initializeCart();
-  }, [user?.id, authLoading]);
+  }, [user?._id, authLoading]);
 
   const addToCart = async (item: CartItem) => {
     if (!cart) return;

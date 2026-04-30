@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { IProduct } from '@/types';
 import { useState } from 'react';
+import { formatPrice } from '@/lib/i18n';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface ProductCardProps {
   product: IProduct;
@@ -12,6 +14,8 @@ interface ProductCardProps {
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
+
+  const { currency } = useCurrency();
 
   return (
     <Link href={`/shop/${product.slug}`}>
@@ -94,7 +98,8 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         {/* Price */}
         <div className="flex items-center justify-between">
           <p className="text-secondary font-bold text-lg">
-            ${product.prices.USD.toFixed(2)}
+            {/* ${product.prices.USD.toFixed(2)} */}
+            {formatPrice(product.prices[currency as keyof typeof product.prices], currency)}
           </p>
 
           {/* Stock Status */}
