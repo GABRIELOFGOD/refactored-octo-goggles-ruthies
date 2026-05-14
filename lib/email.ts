@@ -292,3 +292,205 @@ export async function sendNewsletterEmail(
     html,
   });
 }
+
+// Booking-related email functions
+export async function sendBookingConfirmationEmail(data: {
+  email: string;
+  userName: string;
+  serviceName: string;
+  bookingNumber: string;
+  scheduledDate: string;
+  scheduledTime?: string;
+  total: number;
+  currency: string;
+}) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: 'DM Sans', Arial, sans-serif; color: #1a1a1a; line-height: 1.6; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 5px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .content { padding: 20px; background: #f9f9f9; border-radius: 5px; margin-top: 20px; }
+          .details { background: white; padding: 15px; border-left: 4px solid #667eea; margin: 15px 0; border-radius: 4px; }
+          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e0e0e0; }
+          .detail-label { font-weight: bold; color: #667eea; }
+          .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✓ Booking Confirmed</h1>
+            <p>Thank you for booking with us!</p>
+          </div>
+          
+          <div class="content">
+            <p>Hi ${data.userName},</p>
+            
+            <p>Your service booking has been successfully confirmed. Here are your booking details:</p>
+            
+            <div class="details">
+              <div class="detail-row">
+                <span class="detail-label">Booking Number:</span>
+                <span>${data.bookingNumber}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Service:</span>
+                <span>${data.serviceName}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Date:</span>
+                <span>${data.scheduledDate}</span>
+              </div>
+              ${
+                data.scheduledTime
+                  ? `<div class="detail-row">
+                <span class="detail-label">Time:</span>
+                <span>${data.scheduledTime}</span>
+              </div>`
+                  : ''
+              }
+              <div class="detail-row">
+                <span class="detail-label">Amount:</span>
+                <span>${data.currency} ${data.total}</span>
+              </div>
+            </div>
+            
+            <p>If you have any questions or need to reschedule, please don't hesitate to contact us.</p>
+          </div>
+          
+          <div class="footer">
+            <p>&copy; 2026 Ruthies Africa. We style, you slay.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: data.email,
+    subject: `Booking Confirmation - ${data.bookingNumber} | Ruthies Africa`,
+    html,
+  });
+}
+
+export async function sendBookingCompletionEmail(data: {
+  email: string;
+  userName: string;
+  serviceName: string;
+  bookingNumber: string;
+  message?: string;
+}) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: 'DM Sans', Arial, sans-serif; color: #1a1a1a; line-height: 1.6; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 5px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .content { padding: 20px; background: #f9f9f9; border-radius: 5px; margin-top: 20px; }
+          .success-box { background: white; padding: 15px; border-left: 4px solid #10b981; margin: 15px 0; border-radius: 4px; }
+          .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✓ Service Completed</h1>
+          </div>
+          
+          <div class="content">
+            <p>Hi ${data.userName},</p>
+            
+            <p>Great news! Your service has been completed.</p>
+            
+            <div class="success-box">
+              <p><strong>Booking Number:</strong> ${data.bookingNumber}</p>
+              <p><strong>Service:</strong> ${data.serviceName}</p>
+              <p style="color: #10b981; font-weight: bold;">Status: ✓ Completed</p>
+            </div>
+            
+            ${data.message ? `<p>${data.message}</p>` : ''}
+            
+            <p>Thank you for choosing Ruthies Africa!</p>
+          </div>
+          
+          <div class="footer">
+            <p>&copy; 2026 Ruthies Africa. We style, you slay.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: data.email,
+    subject: `Service Completed - ${data.bookingNumber} | Ruthies Africa`,
+    html,
+  });
+}
+
+export async function sendCustomNotificationEmail(data: {
+  email: string;
+  userName: string;
+  subject: string;
+  title: string;
+  message: string;
+  details?: string;
+}) {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: 'DM Sans', Arial, sans-serif; color: #1a1a1a; line-height: 1.6; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 5px; text-align: center; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .content { padding: 20px; background: #f9f9f9; border-radius: 5px; margin-top: 20px; }
+          .message-box { background: white; padding: 15px; border-left: 4px solid #667eea; margin: 15px 0; border-radius: 4px; }
+          .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${data.title}</h1>
+          </div>
+          
+          <div class="content">
+            <p>Hi ${data.userName},</p>
+            
+            <div class="message-box">
+              <p>${data.message}</p>
+              ${data.details ? `<p style="color: #666; font-size: 14px; margin-top: 10px;">${data.details}</p>` : ''}
+            </div>
+            
+            <p>Best regards,<br/>Ruthies Africa Team</p>
+          </div>
+          
+          <div class="footer">
+            <p>&copy; 2026 Ruthies Africa. We style, you slay.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM,
+    to: data.email,
+    subject: data.subject,
+    html,
+  });
+}

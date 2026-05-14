@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { IProduct, IBanner, IService } from '@/types';
+import { IProduct, IBanner } from '@/types';
 import { useCurrency } from '@/context/CurrencyContext';
 import { formatPrice } from '@/lib/i18n';
+import ServiceGrid from '@/components/ServiceGrid';
 
 export default function HomePage() {
   const [banners, setBanners] = useState<IBanner[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<IProduct[]>([]);
   const [newArrivals, setNewArrivals] = useState<IProduct[]>([]);
-  const [services, setServices] = useState<IService[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const { currency } = useCurrency();
@@ -18,11 +18,10 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [bannersRes, featuredRes, newRes, servicesRes] = await Promise.all([
+        const [bannersRes, featuredRes, newRes] = await Promise.all([
           fetch('/api/banners?position=hero&isActive=true'),
           fetch('/api/products?featured=true&limit=8'),
           fetch('/api/products?newArrival=true&limit=8'),
-          fetch('/api/services'),
         ]);
 
         if (bannersRes.ok) {
@@ -36,10 +35,6 @@ export default function HomePage() {
         if (newRes.ok) {
           const data = await newRes.json();
           setNewArrivals(data.data || []);
-        }
-        if (servicesRes.ok) {
-          const data = await servicesRes.json();
-          setServices(data.data || []);
         }
       } catch (error) {
         console.error('Failed to fetch homepage data:', error);
@@ -159,7 +154,7 @@ export default function HomePage() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold font-playfair mb-12 text-center">Our Services</h2>
-          {services.length > 0 ? (
+          {/* {services.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {services.map((service) => (
                 <Link
@@ -190,7 +185,8 @@ export default function HomePage() {
             </div>
           ) : (
             <p className="text-center text-gray-500">No services available</p>
-          )}
+          )} */}
+          <ServiceGrid length={6} />
         </div>
       </section>
 

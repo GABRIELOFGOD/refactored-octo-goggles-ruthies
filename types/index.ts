@@ -391,3 +391,22 @@ export interface FormDataType {
   validUntil: string;
   isActive: boolean;
 }
+
+// Notification
+export interface INotification {
+  _id: string;
+  type: 'service' | 'order';
+  user: string;
+  booking?: string;
+  order?: string;
+  title: string;
+  message: string;
+  description?: string;
+  actionUrl?: string;
+  icon: 'booking' | 'order' | 'payment' | 'delivery' | 'alert' | 'info';
+  isRead: boolean;
+  isDeleted: boolean;
+  deletedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}

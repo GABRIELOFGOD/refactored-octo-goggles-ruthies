@@ -8,11 +8,11 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { formatPrice, t } from "@/lib/i18n";
 
-const ServiceGrid = () => {
+const ServiceGrid = ({ length }: { length?: number }) => {
   const [services, setServices] = useState<IService[]>([]);
   const [selectedService, setSelectedService] = useState<IService | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const { getServices } = useService();
+  const { getServices, loading } = useService();
   const { language } = useLanguage();
   const { currency } = useCurrency();
 
@@ -35,13 +35,21 @@ const ServiceGrid = () => {
     setSelectedService(null);
   };
 
+  if (loading) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-neutral-600 text-lg">{t(language, 'common.loading')}</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {services && services.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {services.map((service) => (
+              {services.slice(0, length).map((service) => (
                 <div
                   key={service._id}
                   className="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow overflow-hidden flex flex-col"
