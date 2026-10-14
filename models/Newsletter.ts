@@ -33,8 +33,4 @@ const newsletterSchema = new Schema<NewsletterDocument>(
   }
 );
 
-newsletterSchema.query.notDeleted = function (this: any) {
-  return this.where({ isDeleted: { $ne: true } });
-} as any;
-
 export const Newsletter = mongoose.models.Newsletter || mongoose.model<NewsletterDocument>('Newsletter', newsletterSchema);

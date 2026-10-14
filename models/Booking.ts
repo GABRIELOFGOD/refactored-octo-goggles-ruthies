@@ -1,7 +1,11 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IBooking } from '@/types';
 
-export interface BookingDocument extends IBooking, Document {}
+export type BookingDocument = Omit<IBooking, '_id' | 'user' | 'service'> & {
+  _id: mongoose.Types.ObjectId;
+  user?: mongoose.Types.ObjectId;
+  service: mongoose.Types.ObjectId;
+};
 
 const bookingSchema = new Schema<BookingDocument>(
   {
@@ -59,9 +63,5 @@ const bookingSchema = new Schema<BookingDocument>(
     timestamps: true,
   }
 );
-
-bookingSchema.query.notDeleted = function () {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const Booking = mongoose.models.Booking || mongoose.model<BookingDocument>('Booking', bookingSchema);

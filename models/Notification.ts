@@ -1,7 +1,15 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { INotification } from '@/types';
 
-export interface NotificationDocument extends INotification, Document {}
+export type NotificationDocument = Omit<
+  INotification,
+  '_id' | 'user' | 'booking' | 'order'
+> & {
+  _id: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
+  booking?: mongoose.Types.ObjectId;
+  order?: mongoose.Types.ObjectId;
+};
 
 const notificationSchema = new Schema<NotificationDocument>(
   {
@@ -58,10 +66,6 @@ const notificationSchema = new Schema<NotificationDocument>(
     timestamps: true,
   }
 );
-
-notificationSchema.query.notDeleted = function () {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const Notification =
   mongoose.models.Notification ||

@@ -1,7 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { ICategory } from '@/types';
 
-export interface CategoryDocument extends ICategory, Document {}
+export type CategoryDocument = Omit<ICategory, '_id' | 'parentCategory'> & {
+  _id: mongoose.Types.ObjectId;
+  parentCategory?: mongoose.Types.ObjectId;
+};
 
 const categorySchema = new Schema<CategoryDocument>(
   {
@@ -37,9 +40,5 @@ const categorySchema = new Schema<CategoryDocument>(
     timestamps: true,
   }
 );
-
-categorySchema.query.notDeleted = function () {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const Category = mongoose.models.Category || mongoose.model<CategoryDocument>('Category', categorySchema);

@@ -1,7 +1,9 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { ISizeGuide, SizeChartRow } from '@/types';
 
-export interface SizeGuideDocument extends ISizeGuide, Document {}
+export type SizeGuideDocument = Omit<ISizeGuide, '_id'> & {
+  _id: mongoose.Types.ObjectId;
+};
 
 const sizeChartRowSchema = new Schema<SizeChartRow>({
   size: String,
@@ -35,9 +37,5 @@ const sizeGuideSchema = new Schema<SizeGuideDocument>(
     timestamps: { createdAt: false, updatedAt: 'updatedAt' },
   }
 );
-
-sizeGuideSchema.query.notDeleted = function () {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const SizeGuide = mongoose.models.SizeGuide || mongoose.model<SizeGuideDocument>('SizeGuide', sizeGuideSchema);

@@ -1,7 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IProduct, ProductPhotoCredit, ProductVariant } from '@/types';
 
-export interface ProductDocument extends IProduct, Document {}
+export type ProductDocument = Omit<IProduct, '_id' | 'category'> & {
+  _id: mongoose.Types.ObjectId;
+  category: mongoose.Types.ObjectId;
+};
 
 const productVariantSchema = new Schema<ProductVariant>({
   size: {
@@ -118,9 +121,5 @@ const productSchema = new Schema<ProductDocument>(
     timestamps: true,
   }
 );
-
-productSchema.query.notDeleted = function () {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const Product = mongoose.models.Product || mongoose.model<ProductDocument>('Product', productSchema);

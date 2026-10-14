@@ -1,7 +1,9 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IService } from '@/types';
 
-export interface ServiceDocument extends IService, Document {}
+export type ServiceDocument = Omit<IService, '_id'> & {
+  _id: mongoose.Types.ObjectId;
+};
 
 const serviceSchema = new Schema<ServiceDocument>(
   {
@@ -64,9 +66,5 @@ const serviceSchema = new Schema<ServiceDocument>(
     timestamps: true,
   }
 );
-
-serviceSchema.query.notDeleted = function () {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const Service = mongoose.models.Service || mongoose.model<ServiceDocument>('Service', serviceSchema);

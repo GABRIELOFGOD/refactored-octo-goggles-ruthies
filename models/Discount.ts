@@ -1,7 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IDiscount } from '@/types';
 
-export interface DiscountDocument extends IDiscount, Document {}
+export type DiscountDocument = Omit<IDiscount, '_id' | 'usedBy'> & {
+  _id: mongoose.Types.ObjectId;
+  usedBy: mongoose.Types.ObjectId[];
+};
 
 const discountSchema = new Schema<DiscountDocument>(
   {
@@ -59,9 +62,5 @@ const discountSchema = new Schema<DiscountDocument>(
     timestamps: true,
   }
 );
-
-discountSchema.query.notDeleted = function () {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const Discount = mongoose.models.Discount || mongoose.model<DiscountDocument>('Discount', discountSchema);

@@ -1,7 +1,9 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IBanner } from '@/types';
 
-export interface BannerDocument extends IBanner, Document {}
+export type BannerDocument = Omit<IBanner, '_id'> & {
+  _id: mongoose.Types.ObjectId;
+};
 
 const bannerSchema = new Schema<BannerDocument>(
   {
@@ -43,9 +45,5 @@ const bannerSchema = new Schema<BannerDocument>(
     timestamps: true,
   }
 );
-
-bannerSchema.query.notDeleted = function () {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const Banner = mongoose.models.Banner || mongoose.model<BannerDocument>('Banner', bannerSchema);

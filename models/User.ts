@@ -1,9 +1,5 @@
-import mongoose, { Schema, Document, Query } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 import { IUser } from '@/types';
-
-interface UserQueryHelpers {
-  notDeleted(): Query<any, UserDocument> & UserQueryHelpers;
-}
 
 type UserDocumentType = Omit<IUser, '_id'>;
 
@@ -11,7 +7,7 @@ export interface UserDocument extends UserDocumentType, Document {
   _id: mongoose.Types.ObjectId;
 }
 
-const userSchema = new Schema<UserDocument, mongoose.Model<UserDocument, UserQueryHelpers>, {}, UserQueryHelpers>(
+const userSchema = new Schema<UserDocument>(
   {
     name: {
       type: String,
@@ -68,10 +64,5 @@ const userSchema = new Schema<UserDocument, mongoose.Model<UserDocument, UserQue
     timestamps: true,
   }
 );
-
-// Soft delete middleware
-userSchema.query.notDeleted = function (this: Query<any, UserDocument> & UserQueryHelpers) {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const User = mongoose.models.User || mongoose.model<UserDocument>('User', userSchema);

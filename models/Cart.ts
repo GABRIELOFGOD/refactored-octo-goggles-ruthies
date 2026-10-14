@@ -1,9 +1,17 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { ICart, CartItem } from '@/types';
 
-export interface CartDocument extends ICart, Document {}
+type CartItemDocument = Omit<CartItem, 'product'> & {
+  product: mongoose.Types.ObjectId;
+};
 
-const cartItemSchema = new Schema<CartItem>({
+export type CartDocument = Omit<ICart, '_id' | 'user' | 'items'> & {
+  _id: mongoose.Types.ObjectId;
+  user?: mongoose.Types.ObjectId;
+  items: CartItemDocument[];
+};
+
+const cartItemSchema = new Schema<CartItemDocument>({
   product: {
     type: Schema.Types.ObjectId,
     ref: 'Product',
@@ -44,9 +52,5 @@ const cartSchema = new Schema<CartDocument>(
     timestamps: { createdAt: false, updatedAt: 'updatedAt' },
   }
 );
-
-cartSchema.query.notDeleted = function () {
-  return this.where({ isDeleted: { $ne: true } });
-};
 
 export const Cart = mongoose.models.Cart || mongoose.model<CartDocument>('Cart', cartSchema);

@@ -129,8 +129,4 @@ const orderSchema = new Schema<OrderDocument>(
   }
 );
 
-orderSchema.query.notDeleted = function (this: any) {
-  return this.where({ isDeleted: { $ne: true } });
-} as any;
-
 export const Order = mongoose.models.Order || mongoose.model<OrderDocument>('Order', orderSchema);

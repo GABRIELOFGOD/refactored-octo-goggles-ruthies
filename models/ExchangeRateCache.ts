@@ -1,7 +1,9 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import { IExchangeRateCache } from '@/types';
 
-export interface ExchangeRateCacheDocument extends IExchangeRateCache, Document {}
+export type ExchangeRateCacheDocument = Omit<IExchangeRateCache, '_id'> & {
+  _id: mongoose.Types.ObjectId;
+};
 
 const exchangeRateCacheSchema = new Schema<ExchangeRateCacheDocument>(
   {
