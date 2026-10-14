@@ -6,7 +6,7 @@ import { authenticateUser } from '@/lib/auth-helpers';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
   try {
     const { productId } = await params;

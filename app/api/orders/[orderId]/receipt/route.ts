@@ -5,7 +5,7 @@ import { ApiResponse } from '@/types';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const { orderId } = await params;

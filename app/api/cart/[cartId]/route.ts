@@ -6,7 +6,7 @@ import { ApiResponse, ICart, CartItem } from '@/types';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { cartId: string } }
+  { params }: { params: Promise<{ cartId: string }> }
 ) {
   try {
     const { cartId } = await params;
@@ -53,7 +53,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { cartId: string } }
+  { params }: { params: Promise<{ cartId: string }> }
 ) {
   try {
     const { cartId } = await params;
@@ -97,7 +97,7 @@ export async function DELETE(
 // Add item to cart
 export async function POST(
   request: NextRequest,
-  { params }: { params: { cartId: string } }
+  { params }: { params: Promise<{ cartId: string }> }
 ) {
   try {
     const { cartId } = await params;

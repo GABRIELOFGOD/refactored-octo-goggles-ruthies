@@ -8,7 +8,7 @@ import { authenticateUser } from '@/lib/auth-helpers';
 // Admin only - update order status and tracking
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const { orderId } = await params;
@@ -100,7 +100,7 @@ export async function PUT(
 // Admin only - get order for admin panel
 export async function GET(
   request: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const { orderId } = await params;

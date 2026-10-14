@@ -5,7 +5,7 @@ import { ApiResponse, ICart } from '@/types';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { cartId: string } }
+  { params }: { params: Promise<{ cartId: string }> }
 ) {
   try {
     const { cartId } = await params;
