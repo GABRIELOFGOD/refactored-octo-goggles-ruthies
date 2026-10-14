@@ -1,38 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/options';
-import { User } from '@/models/User';
 import { Booking } from '@/models/Booking';
 import { Notification } from '@/models/Notification';
-import { connectDB } from '@/lib/db';
+import connectToDatabase from '@/lib/mongoose';
 import { sendCustomNotificationEmail } from '@/lib/email';
 import mongoose from 'mongoose';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await authenticateUser(req);
+    if (!user?._id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    await connectDB();
+    await connectToDatabase();
 
     // Verify user is admin
-    const admin = await User.findById(session.user.id);
-    if (admin?.role !== 'admin') {
+    if (user.role !== 'admin') {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
         { status: 403 }
       );
     }
 
-    const { id } = await Promise.resolve(params);
+    const { id } = await params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid booking ID' },
@@ -101,6 +98,9 @@ export async function POST(
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error sending email:', error);
     return NextResponse.json(
       { error: 'Failed to send email' },

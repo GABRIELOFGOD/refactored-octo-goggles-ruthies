@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { IOrder } from '@/types';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Download, Package, Truck, CheckCircle2 } from 'lucide-react';
@@ -17,7 +18,9 @@ export default function OrderDetailPage() {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`/api/orders/${orderId}`);
+        const res = await fetch(`/api/orders/${orderId}`, {
+          headers: getClientAuthHeaders(),
+        });
         const data = await res.json();
 
         if (data.success) {

@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { Booking } from '@/models/Booking';
-import { connectDB } from '@/lib/db';
+import connectToDatabase from '@/lib/mongoose';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const user = await authenticateUser(req);
 
-    await connectDB();
+    await connectToDatabase();
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
@@ -22,14 +15,11 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
 
     // Build query - fetch user's bookings
-    let query: any = {
-      user: session.user.id,
+    const query = {
+      user: user._id,
       isDeleted: { $ne: true },
+      ...(status ? { status } : {}),
     };
-
-    if (status) {
-      query.status = status;
-    }
 
     // Get total count
     const total = await Booking.countDocuments(query);
@@ -55,6 +45,9 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error fetching user bookings:', error);
     return NextResponse.json(
       { error: 'Failed to fetch bookings' },

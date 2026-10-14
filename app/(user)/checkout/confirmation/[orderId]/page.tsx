@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { IOrder } from '@/types';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 export default function OrderConfirmationPage() {
   const params = useParams();
@@ -18,7 +19,9 @@ export default function OrderConfirmationPage() {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await fetch(`/api/orders/${orderId}`);
+        const res = await fetch(`/api/orders/${orderId}`, {
+          headers: getClientAuthHeaders(),
+        });
         const data = await res.json();
 
         if (data.success) {

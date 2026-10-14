@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { formatDate } from '@/lib/utils';
+import { useAuth } from '@/provider/auth-provider';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 interface Booking {
   _id: string;
@@ -31,7 +32,7 @@ interface ApiResponse {
 }
 
 export default function MyBookingsPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,10 +43,10 @@ export default function MyBookingsPage() {
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
+    if (!authLoading && !user) {
+      router.push('/auth/login');
     }
-  }, [status, router]);
+  }, [authLoading, user, router]);
 
   // Fetch bookings
   useEffect(() => {
@@ -58,11 +59,13 @@ export default function MyBookingsPage() {
           ...(statusFilter && { status: statusFilter }),
         });
 
-        const response = await fetch(`/api/bookings?${query}`);
+        const response = await fetch(`/api/bookings/user?${query}`, {
+          headers: getClientAuthHeaders(),
+        });
 
         if (!response.ok) {
           if (response.status === 401) {
-            router.push('/login');
+            router.push('/auth/login');
             return;
           }
           throw new Error('Failed to fetch bookings');
@@ -79,10 +82,10 @@ export default function MyBookingsPage() {
       }
     };
 
-    if (session?.user?.id) {
+    if (user?._id) {
       fetchBookings();
     }
-  }, [page, statusFilter, session?.user?.id, router]);
+  }, [limit, page, statusFilter, user?._id, router]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -114,7 +117,7 @@ export default function MyBookingsPage() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (authLoading || loading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

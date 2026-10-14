@@ -1,26 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { Notification } from '@/models/Notification';
-import { connectDB } from '@/lib/db';
+import connectToDatabase from '@/lib/mongoose';
 import mongoose from 'mongoose';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await authenticateUser(req);
+    if (!user?._id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    await connectDB();
+    await connectToDatabase();
 
-    const { id } = await Promise.resolve(params);
+    const { id } = await params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid notification ID' },
@@ -40,7 +39,7 @@ export async function PUT(
       );
     }
 
-    if (notification.user.toString() !== session.user.id) {
+    if (notification.user.toString() !== user._id.toString()) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
@@ -59,6 +58,9 @@ export async function PUT(
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error updating notification:', error);
     return NextResponse.json(
       { error: 'Failed to update notification' },
@@ -69,20 +71,20 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await authenticateUser(req);
+    if (!user?._id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    await connectDB();
+    await connectToDatabase();
 
-    const { id } = await Promise.resolve(params);
+    const { id } = await params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid notification ID' },
@@ -99,7 +101,7 @@ export async function DELETE(
       );
     }
 
-    if (notification.user.toString() !== session.user.id) {
+    if (notification.user.toString() !== user._id.toString()) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
@@ -116,6 +118,9 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error deleting notification:', error);
     return NextResponse.json(
       { error: 'Failed to delete notification' },

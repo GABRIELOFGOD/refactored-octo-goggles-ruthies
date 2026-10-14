@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { QueryFilter } from 'mongoose';
 import { Product } from '@/models/Product';
-import { Category } from '@/models/Category';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IProduct } from '@/types';
 
@@ -16,8 +16,11 @@ export async function GET(request: NextRequest) {
     const newArrival = searchParams.get('newArrival');
     const category = searchParams.get('category');
     const search = searchParams.get('search');
+    const currencyParam = searchParams.get('currency');
+    const currency = ['NGN', 'USD', 'GBP', 'EUR'].find((value) => value === currencyParam) || 'NGN';
+    const sortBy = searchParams.get('sort');
 
-    let query: any = { isDeleted: { $ne: true }, isPublished: true };
+    const query: QueryFilter<IProduct> = { isDeleted: { $ne: true }, isPublished: true };
 
     // Support fetching by IDs (for wishlist)
     if (ids) {
@@ -39,14 +42,45 @@ export async function GET(request: NextRequest) {
           { tags: { $in: [new RegExp(search, 'i')] } },
         ];
       }
+
+      const minPriceParam = searchParams.get('minPrice');
+      const maxPriceParam = searchParams.get('maxPrice');
+      const minPrice = minPriceParam === null ? undefined : Number(minPriceParam);
+      const maxPrice = maxPriceParam === null ? undefined : Number(maxPriceParam);
+      if (
+        (minPrice !== undefined && Number.isFinite(minPrice)) ||
+        (maxPrice !== undefined && Number.isFinite(maxPrice))
+      ) {
+        const priceFilter: { $gte?: number; $lte?: number } = {};
+        if (minPrice !== undefined && Number.isFinite(minPrice)) priceFilter.$gte = minPrice;
+        if (maxPrice !== undefined && Number.isFinite(maxPrice)) priceFilter.$lte = maxPrice;
+        query[`prices.${currency}`] = priceFilter;
+      }
+
+      const sizes = searchParams.get('sizes')?.split(',').filter(Boolean) || [];
+      const colors = searchParams.get('colors')?.split(',').filter(Boolean) || [];
+      if (sizes.length || colors.length) {
+        const variantFilter: Record<string, { $in: string[] }> = {};
+        if (sizes.length) variantFilter.size = { $in: sizes };
+        if (colors.length) variantFilter.color = { $in: colors };
+        query.variants = { $elemMatch: variantFilter };
+      }
     }
+
+    const sortOptions: Record<string, Record<string, 1 | -1>> = {
+      newest: { createdAt: -1 },
+      'price-low': { [`prices.${currency}`]: 1 },
+      'price-high': { [`prices.${currency}`]: -1 },
+      popular: { totalSold: -1, createdAt: -1 },
+    };
+    const sort = sortOptions[sortBy || 'newest'] || sortOptions.newest;
 
     const total = await Product.countDocuments(query);
     const products = await Product.find(query)
       // .populate('category')
       .limit(limit)
       .skip((page - 1) * limit)
-      .sort({ createdAt: -1 });
+      .sort(sort);
 
     return NextResponse.json<ApiResponse<IProduct[]>>(
       {

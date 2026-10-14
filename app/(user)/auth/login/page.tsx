@@ -19,29 +19,6 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // const result = await signIn('credentials', {
-      //   email,
-      //   password,
-      //   redirect: false,
-      // });
-
-      // if (result?.error) {
-      //   toast.error(result.error || 'Invalid credentials');
-      // } else {
-      //   toast.success('Login successful!');
-        
-      //   // Fetch user session to check role
-      //   const sessionRes = await fetch('/api/auth/session');
-      //   const session = await sessionRes.json();
-        
-      //   // Redirect based on role
-      //   const redirectUrl = session?.user?.role === 'admin' 
-      //     ? '/admin'
-      //     : (searchParams.get('callbackUrl') || '/');
-        
-      //   router.push(redirectUrl);
-      // }
-
       const result = await fetch("/api/auth/login", {
         method: "POST",
         headers: {

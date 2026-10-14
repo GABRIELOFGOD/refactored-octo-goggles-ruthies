@@ -1,28 +1,31 @@
 "use client";
 
-import { IProduct } from "@/types";
+import { ApiResponse, IProduct } from "@/types";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export const useProducts = () => {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(false);
 
   const getProducts = async () => {
     try {
       setLoading(true);
 
-      const request = await fetch("/api/admin/products", {
+      const request = await fetch("/api/admin/products?limit=100", {
         headers: {
           "authorization": `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
-      const response = await request.json();
+      const response = await request.json() as ApiResponse<IProduct[]>;
+      if (!request.ok || !response.data) {
+        throw new Error(response.error || response.message || "Error fetching products");
+      }
 
       setProducts(response.data);
-    } catch (error: any) {
-      toast.error(error?.message || "Error fetching products");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Error fetching products");
       console.error(error);
     } finally {
       setLoading(false);
@@ -38,15 +41,16 @@ export const useProducts = () => {
         }
       });
 
-      const response = await request.json();
+      const response = await request.json() as ApiResponse<IProduct>;
+      if (!request.ok || !response.data) {
+        throw new Error(response.error || response.message || "Error fetching product");
+      }
 
-      if (!request.ok) throw new Error(response.error || response.message);
-
-      const product = response.data as IProduct;
+      const product = response.data;
 
       return product;
-    } catch (error: any) {
-      toast.error(error?.message || "Error fetching products");
+    } catch (error: unknown) {
+      toast.error(error instanceof Error ? error.message : "Error fetching product");
       console.error(error);
     } finally {
       setLoading(false);

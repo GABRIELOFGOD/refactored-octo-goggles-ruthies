@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import { IProduct, ProductVariant } from '@/types';
+import { IProduct, ProductPhotoCredit, ProductVariant } from '@/types';
 
 export interface ProductDocument extends IProduct, Document {}
 
@@ -20,6 +20,18 @@ const productVariantSchema = new Schema<ProductVariant>({
     required: true,
   },
 });
+
+const productPhotoCreditSchema = new Schema<ProductPhotoCredit>(
+  {
+    imageUrl: { type: String, required: true },
+    title: { type: String, required: true },
+    photographer: { type: String, required: true },
+    sourceUrl: { type: String, required: true },
+    license: { type: String, required: true },
+    licenseUrl: { type: String, required: true },
+  },
+  { _id: false }
+);
 
 const productSchema = new Schema<ProductDocument>(
   {
@@ -63,6 +75,10 @@ const productSchema = new Schema<ProductDocument>(
     },
     gallery: {
       type: [String],
+      default: [],
+    },
+    photoCredits: {
+      type: [productPhotoCreditSchema],
       default: [],
     },
     variants: {

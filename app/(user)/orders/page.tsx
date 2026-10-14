@@ -1,48 +1,49 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { IOrder } from '@/types';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Package } from 'lucide-react';
+import { useAuth } from '@/provider/auth-provider';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 export default function OrdersPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoading: authLoading } = useAuth();
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      window.location.href = '/auth/login';
+    const fetchOrders = async () => {
+      try {
+        const res = await fetch('/api/orders', { headers: getClientAuthHeaders() });
+        const data = await res.json();
+
+        if (data.success) {
+          setOrders(data.data);
+        } else {
+          toast.error('Failed to load orders');
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        toast.error('Failed to load orders');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (!authLoading && !user) {
+      window.location.assign('/auth/login');
       return;
     }
 
-    if (status === 'authenticated') {
-      fetchOrders();
+    if (user) {
+      void fetchOrders();
     }
-  }, [status]);
+  }, [authLoading, user]);
 
-  const fetchOrders = async () => {
-    try {
-      const res = await fetch('/api/orders');
-      const data = await res.json();
-
-      if (data.success) {
-        setOrders(data.data);
-      } else {
-        toast.error('Failed to load orders');
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast.error('Failed to load orders');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (isLoading) {
+  if (authLoading || isLoading || !user) {
     return (
       <div className="min-h-screen bg-light-bg py-12">
         <div className="max-w-7xl mx-auto px-4">
@@ -69,7 +70,7 @@ export default function OrdersPage() {
             <Package className="w-16 h-16 mx-auto text-neutral-300 mb-4" />
             <h2 className="text-2xl font-display text-primary mb-2">No Orders Yet</h2>
             <p className="text-neutral-600 mb-6">
-              You haven't placed any orders yet. Start shopping!
+              You have not placed any orders yet. Start shopping!
             </p>
             <Link href="/shop">
               <Button className="bg-primary text-light-bg hover:bg-primary/90">

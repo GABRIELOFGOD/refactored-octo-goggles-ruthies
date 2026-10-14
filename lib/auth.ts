@@ -1,11 +1,10 @@
-import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import type { NextAuthOptions } from 'next-auth';
 import { User } from '@/models/User';
 import { verifyPassword } from '@/lib/auth-helpers';
 import connectToDatabase from '@/lib/mongoose';
-import { IUser } from '@/types';
 
-export const authConfig = {
+export const authConfig: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -13,7 +12,7 @@ export const authConfig = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials: any) {
+      async authorize(credentials) {
         try {
           if (!credentials?.email || !credentials?.password) {
             throw new Error('Email and password required');
@@ -61,17 +60,17 @@ export const authConfig = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
-        token.avatar = (user as any).avatar;
-        token.preferredCurrency = (user as any).preferredCurrency;
-        token.preferredLanguage = (user as any).preferredLanguage;
+        token.role = user.role;
+        token.avatar = user.avatar;
+        token.preferredCurrency = user.preferredCurrency;
+        token.preferredLanguage = user.preferredLanguage;
       }
       return token;
     },
-    async session({ session, token }: any) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
@@ -92,14 +91,7 @@ export const authConfig = {
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-} as any;
-
-const authInstance = NextAuth(authConfig);
-
-export const handlers = authInstance.handlers;
-export const auth = authInstance.auth;
-export const signIn = authInstance.signIn;
-export const signOut = authInstance.signOut;
+};
 
 // This type ensures that TypeScript knows the correct properties
 declare module 'next-auth' {

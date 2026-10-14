@@ -1,24 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { Booking } from '@/models/Booking';
-import { User } from '@/models/User';
-import { connectDB } from '@/lib/db';
+import connectToDatabase from '@/lib/mongoose';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const user = await authenticateUser(req);
 
-    await connectDB();
+    await connectToDatabase();
 
     // Verify user is admin
-    const user = await User.findById(session.user.id);
     if (user?.role !== 'admin') {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
@@ -33,21 +24,19 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
 
     // Build query
-    let query: any = {
+    const query = {
       isDeleted: { $ne: true },
-    };
-
-    if (status) {
-      query.status = status;
-    }
-
-    if (search) {
-      query.$or = [
+      ...(status ? { status } : {}),
+      ...(search
+        ? {
+            $or: [
         { bookingNumber: { $regex: search, $options: 'i' } },
         { 'guestInfo.name': { $regex: search, $options: 'i' } },
         { 'guestInfo.email': { $regex: search, $options: 'i' } },
-      ];
-    }
+            ],
+          }
+        : {}),
+    };
 
     // Get total count
     const total = await Booking.countDocuments(query);
@@ -74,6 +63,9 @@ export async function GET(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error fetching admin bookings:', error);
     return NextResponse.json(
       { error: 'Failed to fetch bookings' },

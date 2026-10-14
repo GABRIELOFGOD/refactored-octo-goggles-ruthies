@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authConfig } from '@/lib/auth';
 import connectToDatabase from '@/lib/mongoose';
 import { Banner } from '@/models/Banner';
 import { authenticateUser } from '@/lib/auth-helpers';

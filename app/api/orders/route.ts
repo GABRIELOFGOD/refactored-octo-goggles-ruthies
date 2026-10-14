@@ -3,27 +3,19 @@ import { Order } from '@/models/Order';
 import { Cart } from '@/models/Cart';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IOrder } from '@/types';
-import { auth } from '@/lib/auth';
-import { generateOrderNumber } from '@/lib/auth-helpers';
+import { authenticateUser, AuthenticationError, generateOrderNumber } from '@/lib/auth-helpers';
 import { sendOrderConfirmationEmail } from '@/lib/email';
 
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return NextResponse.json<ApiResponse>(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    const user = await authenticateUser(request);
 
     const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10);
     const limit = parseInt(request.nextUrl.searchParams.get('limit') || '10', 10);
 
     const orders = await Order.find({
-      user: session.user.id,
+      user: user._id,
       isDeleted: { $ne: true },
     })
       .populate('items.product')
@@ -32,7 +24,7 @@ export async function GET(request: NextRequest) {
       .limit(limit);
 
     const total = await Order.countDocuments({
-      user: session.user.id,
+      user: user._id,
       isDeleted: { $ne: true },
     });
 
@@ -45,6 +37,12 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Get orders error:', error);
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Failed to fetch orders' },
@@ -58,7 +56,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     await connectToDatabase();
 
-    const session = await auth();
+    const user = request.headers.get('authorization')
+      ? await authenticateUser(request)
+      : null;
 
     const {
       items,
@@ -77,8 +77,8 @@ export async function POST(request: NextRequest) {
 
     const order = new Order({
       orderNumber,
-      user: session?.user?.id || null,
-      email: session?.user?.email || body.email,
+      user: user?._id || null,
+      email: user?.email || body.email,
       items,
       shippingAddress,
       subtotal,
@@ -103,9 +103,9 @@ export async function POST(request: NextRequest) {
     await order.populate('items.product');
 
     // Clear cart if user is logged in
-    if (session?.user?.id) {
+    if (user?._id) {
       await Cart.updateOne(
-        { user: session.user.id },
+        { user: user._id },
         { items: [] }
       );
     }
@@ -126,6 +126,12 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Create order error:', error);
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Failed to create order' },

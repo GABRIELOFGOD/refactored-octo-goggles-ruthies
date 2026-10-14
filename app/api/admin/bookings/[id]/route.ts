@@ -1,29 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { Booking } from '@/models/Booking';
 import { Notification } from '@/models/Notification';
-import { User } from '@/models/User';
-import { connectDB } from '@/lib/db';
+import connectToDatabase from '@/lib/mongoose';
 import mongoose from 'mongoose';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await authenticateUser(req);
+    if (!user?._id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    await connectDB();
+    await connectToDatabase();
 
     // Verify user is admin
-    const user = await User.findById(session.user.id);
     if (user?.role !== 'admin') {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
@@ -31,7 +28,7 @@ export async function PUT(
       );
     }
 
-    const { id } = await Promise.resolve(params);
+    const { id } = await params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
         { error: 'Invalid booking ID' },
@@ -81,6 +78,9 @@ export async function PUT(
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     console.error('Error updating booking:', error);
     return NextResponse.json(
       { error: 'Failed to update booking' },

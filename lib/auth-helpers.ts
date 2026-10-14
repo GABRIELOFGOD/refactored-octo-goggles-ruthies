@@ -1,5 +1,5 @@
 
-import { ApiResponse, IUser, JwtPayload } from '@/types';
+import { IUser, JwtPayload } from '@/types';
 import { hash, compare } from 'bcryptjs';
 import { sign, verify } from "jsonwebtoken";
 import connectToDatabase from '@/lib/mongoose';
@@ -57,21 +57,30 @@ export const verifyToken = (token: string) => {
   return verify(token, process.env.JWT_SECRET!);
 }
 
-export const authenticateUser = async (request: NextRequest): Promise<IUser> => {
-  try {
-    const tokenHeader = request.headers.get("authorization");
-    if (!tokenHeader) throw new Error("Please please login");
-
-    const splitHeader = tokenHeader.split(" ");
-    if (splitHeader[0] !== "Bearer") throw new Error("Please send a Bearer token")
-
-    const decodedToken = verifyToken(splitHeader[1]) as JwtPayload;
-
-    await connectToDatabase()
-    const user = await User.findById(decodedToken.id);
-    if (!user || user.isDeleted) throw new Error("User not found");
-    return user;
-  } catch (error) {
-    throw error;
+export class AuthenticationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AuthenticationError';
   }
 }
+
+export const authenticateUser = async (request: NextRequest): Promise<IUser> => {
+  const [scheme, token] = request.headers.get('authorization')?.split(' ') ?? [];
+  if (scheme !== 'Bearer' || !token) {
+    throw new AuthenticationError('Unauthorized');
+  }
+
+  let decodedToken: JwtPayload;
+  try {
+    decodedToken = verifyToken(token) as JwtPayload;
+  } catch {
+    throw new AuthenticationError('Unauthorized');
+  }
+
+  await connectToDatabase();
+  const user = await User.findById(decodedToken.id);
+  if (!user || user.isDeleted) {
+    throw new AuthenticationError('Unauthorized');
+  }
+  return user;
+};

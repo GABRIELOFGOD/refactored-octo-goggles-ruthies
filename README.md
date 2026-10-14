@@ -20,6 +20,10 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Dynamic translations
+
+French interface text is translated at runtime by LibreTranslate. Configure the server-side `LIBRETRANSLATE_URL` environment variable with the base URL of a LibreTranslate instance. If the instance requires authentication, also set `LIBRETRANSLATE_API_KEY`. Translation requests are sent through `/api/translate`; API credentials are not exposed to the browser.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

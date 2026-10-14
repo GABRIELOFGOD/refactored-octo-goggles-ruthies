@@ -1,7 +1,6 @@
 'use client';
 
-import { useTranslation } from '@/hooks/useTranslation';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 
 interface Booking {
   _id: string;
@@ -35,8 +34,6 @@ export default function BookingManagementTable({
   onStatusChange,
   onEmailClick,
 }: Props) {
-  const { t } = useTranslation();
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
@@ -50,16 +47,6 @@ export default function BookingManagementTable({
       default:
         return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const getStatusLabel = (status: string) => {
-    const statusMap: { [key: string]: string } = {
-      pending: 'Pending',
-      confirmed: 'Confirmed',
-      completed: 'Completed',
-      cancelled: 'Cancelled',
-    };
-    return statusMap[status] || status;
   };
 
   if (bookings.length === 0) {

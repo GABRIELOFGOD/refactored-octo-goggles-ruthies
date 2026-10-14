@@ -30,7 +30,9 @@ export default function ProductForm({
   const [formData, setFormData] = useState({
     name: product?.name || '',
     slug: product?.slug || '',
-    category: product?.category || '',
+    category: product?.category && typeof product.category !== 'string'
+      ? product.category._id
+      : product?.category || '',
     description: product?.description || '',
     heroImageUrl: product?.heroImage || '',
     prices: {
@@ -41,6 +43,7 @@ export default function ProductForm({
     },
     variants: product?.variants || [],
     tags: product?.tags || [],
+    photoCredits: product?.photoCredits || [],
     isFeatured: product?.isFeatured || false,
     isNewArrival: product?.isNewArrival || false,
     isPublished: product?.isPublished || false,
@@ -190,8 +193,13 @@ export default function ProductForm({
   };
 
   const removeImage = (index: number) => {
+    const removedImage = images[index];
     const newImages = images.filter((_, i) => i !== index);
     setImages(newImages);
+    setFormData((prev) => ({
+      ...prev,
+      photoCredits: prev.photoCredits.filter((credit) => credit.imageUrl !== removedImage),
+    }));
     if (heroImage === images[index]) {
       setHeroImage(newImages[0] || '');
       setFormData((prev) => ({

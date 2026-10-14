@@ -1,84 +1,70 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useWishlist } from '@/context/WishlistContext';
-import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { toast } from 'sonner';
 import ProductCard from '@/components/ProductCard';
 import { IProduct } from '@/types';
+import { useAuth } from '@/provider/auth-provider';
 
 export default function WishlistPage() {
-  const { data: session } = useSession();
-  const { wishlistItems, isLoading, removeFromWishlist } = useWishlist();
-  const { addToCart } = useCart();
-  const [mounted, setMounted] = useState(false);
+  const { user, isLoading: authLoading } = useAuth();
+  const { wishlistItems, isLoading } = useWishlist();
   const [products, setProducts] = useState<IProduct[]>([]);
-  const [productsLoading, setProductsLoading] = useState(false);
+  const [loadedWishlistIds, setLoadedWishlistIds] = useState<string[]>([]);
+  const productsLoading =
+    wishlistItems.length > 0 && loadedWishlistIds.join(',') !== wishlistItems.join(',');
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (isLoading || authLoading || !user) return;
+    if (wishlistItems.length === 0) return;
 
-  useEffect(() => {
-    if (wishlistItems.length > 0 && mounted) {
-      fetchWishlistProducts();
-    }
-  }, [wishlistItems, mounted]);
-
-  const fetchWishlistProducts = async () => {
-    try {
-      setProductsLoading(true);
-      const ids = wishlistItems.join(',');
-      const response = await fetch(`/api/products?ids=${ids}`);
-      const data = await response.json();
-
-      if (data.success) {
+    const productIds = [...wishlistItems];
+    const ids = productIds.join(',');
+    fetch(`/api/products?ids=${encodeURIComponent(ids)}`)
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Failed to load wishlist products');
+        }
         setProducts(data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching wishlist products:', error);
-      toast.error('Failed to load wishlist products');
-    } finally {
-      setProductsLoading(false);
-    }
-  };
+      })
+      .catch((error) => {
+        console.error('Error fetching wishlist products:', error);
+        toast.error('Failed to load wishlist products');
+      })
+      .finally(() => setLoadedWishlistIds(productIds));
+  }, [authLoading, isLoading, user, wishlistItems]);
 
-  const handleAddToCart = async (product: IProduct) => {
-    try {
-      await addToCart({
-        product: product._id,
-        quantity: 1,
-        price: product.prices?.NGN || 0,
-        currency: 'NGN',
-        variant: product.variants?.[0] || {
-          size: '',
-          sku: '',
-        },
-      });
-      toast.success('Added to cart');
-    } catch (error) {
-      toast.error('Failed to add to cart');
-    }
-  };
-
-  if (!mounted) return null;
-
-  if (!session) {
+  if (authLoading || (user && isLoading)) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-light-bg to-light-bg/50 py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center py-12">
-            <Heart className="w-16 h-16 mx-auto text-neutral-300 mb-4" />
-            <h1 className="text-3xl font-display mb-2">Sign in to View Wishlist</h1>
-            <p className="text-neutral-600 mb-6">
+      <div className="min-h-screen bg-[#fbf9f3] py-10 sm:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-5 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+            {[1, 2, 3, 4].map((item) => (
+              <div key={item} className="aspect-[4/5] animate-pulse rounded-2xl bg-primary/10" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#fbf9f3] py-10 sm:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-xl rounded-3xl border border-primary/10 bg-white px-6 py-16 text-center shadow-sm">
+            <Heart className="mx-auto mb-5 h-14 w-14 text-primary/25" />
+            <h1 className="font-playfair text-3xl text-primary">Sign in to see your saved looks</h1>
+            <p className="mb-6 mt-3 text-sm text-neutral-600">
               Please sign in to access your saved items
             </p>
             <Link href="/auth/login">
-              <Button className="bg-primary text-light-bg hover:bg-primary/90">
+              <Button className="rounded-full bg-primary px-6 text-white hover:bg-primary/90">
                 Sign In
               </Button>
             </Link>
@@ -90,15 +76,15 @@ export default function WishlistPage() {
 
   if (isLoading || productsLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-light-bg to-light-bg/50 py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="min-h-screen bg-[#fbf9f3] py-10 sm:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-5 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="bg-white rounded-lg overflow-hidden animate-pulse">
-                <div className="aspect-square bg-neutral-200"></div>
+              <div key={i} className="animate-pulse">
+                <div className="aspect-[4/5] rounded-2xl bg-primary/10"></div>
                 <div className="p-4 space-y-3">
-                  <div className="h-4 bg-neutral-200 rounded w-3/4"></div>
-                  <div className="h-6 bg-neutral-200 rounded w-1/2"></div>
+                  <div className="h-4 w-3/4 rounded bg-primary/10"></div>
+                  <div className="h-6 w-1/2 rounded bg-primary/10"></div>
                 </div>
               </div>
             ))}
@@ -110,17 +96,17 @@ export default function WishlistPage() {
 
   if (wishlistItems.length === 0 || products.length === 0) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-light-bg to-light-bg/50 py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center py-12">
-            <Heart className="w-16 h-16 mx-auto text-neutral-300 mb-4" />
-            <h1 className="text-3xl font-display mb-2">Your Wishlist is Empty</h1>
-            <p className="text-neutral-600 mb-6">
-              Save your favorite items to your wishlist to view them later
+      <div className="min-h-screen bg-[#fbf9f3] py-10 sm:py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-xl rounded-3xl border border-primary/10 bg-white px-6 py-16 text-center shadow-sm">
+            <Heart className="mx-auto mb-5 h-14 w-14 text-primary/25" />
+            <h1 className="font-playfair text-3xl text-primary">Keep your favourites close.</h1>
+            <p className="mb-6 mt-3 text-sm text-neutral-600">
+              Save the pieces you love and come back to them whenever you like.
             </p>
             <Link href="/shop">
-              <Button className="bg-primary text-light-bg hover:bg-primary/90">
-                Explore Products
+              <Button className="rounded-full bg-primary px-6 text-white hover:bg-primary/90">
+                Explore the collection
               </Button>
             </Link>
           </div>
@@ -130,36 +116,21 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-light-bg to-light-bg/50 py-12">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-[#fbf9f3] py-10 sm:py-14">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-display text-primary mb-2">My Wishlist</h1>
-          <p className="text-neutral-600">
-            {products.length} {products.length === 1 ? 'item' : 'items'} saved
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary/55">Your style shortlist</p>
+          <h1 className="mb-2 font-playfair text-4xl text-primary">Saved looks</h1>
+          <p className="text-sm text-neutral-600">
+            {products.length} {products.length === 1 ? 'piece' : 'pieces'} saved
           </p>
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 gap-5 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => (
-            <div key={product._id} className="relative">
-              <ProductCard
-                product={product}
-                onWishlistChange={() => {
-                  removeFromWishlist(product._id);
-                }}
-              />
-
-              {/* Quick Add to Cart Button */}
-              <button
-                onClick={() => handleAddToCart(product)}
-                className="absolute bottom-4 left-4 right-4 bg-secondary text-light-bg rounded-lg py-2 font-semibold hover:bg-secondary/90 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                Add to Cart
-              </button>
-            </div>
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
 
@@ -168,7 +139,7 @@ export default function WishlistPage() {
           <Link href="/shop">
             <Button
               variant="outline"
-              className="border-primary text-primary hover:bg-light-bg"
+              className="rounded-full border-primary/20 text-primary hover:bg-white"
             >
               Continue Shopping
             </Button>

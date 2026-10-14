@@ -2,16 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Order } from '@/models/Order';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IOrder } from '@/types';
-import { auth } from '@/lib/auth';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { orderId: string } }
+  { params }: { params: Promise<{ orderId: string }> }
 ) {
   try {
     const { orderId } = await params;
     await connectToDatabase();
-    const session = await auth();
+    const user = request.headers.get('authorization')
+      ? await authenticateUser(request)
+      : null;
 
     const order = await Order.findOne({
       _id: orderId,
@@ -26,8 +28,14 @@ export async function GET(
     }
 
     // Check authorization
-    if (session?.user?.id && order.user?.toString() !== session.user.id) {
-      // User can only see their own orders
+    if (order.user && !user) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    if (order.user && order.user.toString() !== user?._id.toString()) {
       return NextResponse.json<ApiResponse>(
         { success: false, error: 'Unauthorized' },
         { status: 403 }
@@ -39,6 +47,12 @@ export async function GET(
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Get order error:', error);
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Failed to fetch order' },

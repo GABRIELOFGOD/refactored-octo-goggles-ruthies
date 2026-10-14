@@ -1,20 +1,23 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { t, convertCurrency } from '@/lib/i18n';
+import type { Currency } from '@/lib/i18n';
 import { Filter } from 'lucide-react';
 
+export interface ProductFilterValues {
+  category?: string;
+  priceRange?: [number, number];
+  sizes?: string[];
+  colors?: string[];
+  sort: string;
+  currency: Currency;
+}
+
 interface ProductFiltersProps {
-  onFilterChange: (filters: {
-    category?: string;
-    priceRange?: [number, number];
-    sizes?: string[];
-    colors?: string[];
-    sort?: string;
-    currency?: string;
-  }) => void;
+  onFilterChange: (filters: ProductFilterValues) => void;
   availableCategories: Array<{ _id: string; name: string }>;
 }
 
@@ -22,20 +25,18 @@ export default function ProductFilters({
   onFilterChange,
   availableCategories,
 }: ProductFiltersProps) {
+  const { language } = useLanguage();
+  const { currency } = useCurrency();
+  const maxPriceNGN = 100000;
+  const maxPriceConverted = convertCurrency(maxPriceNGN, 'NGN', currency);
+
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, maxPriceConverted]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('newest');
 
-  const { language } = useLanguage();
-  const { currency } = useCurrency();
-
-  // Calculate max price based on currency
-  const maxPriceNGN = 100000;
-  const maxPriceConverted = convertCurrency(maxPriceNGN, 'NGN', currency);
-
-  const handleFilterChange = () => {
+  const handleFilterChange = (overrides: Partial<ProductFilterValues> = {}) => {
     onFilterChange({
       category: selectedCategory || undefined,
       priceRange: priceRange[1] < maxPriceConverted ? priceRange : undefined,
@@ -43,6 +44,7 @@ export default function ProductFilters({
       colors: selectedColors.length > 0 ? selectedColors : undefined,
       sort: sortBy,
       currency,
+      ...overrides,
     });
   };
 
@@ -57,10 +59,10 @@ export default function ProductFilters({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 p-6 space-y-6 shadow-sm sticky top-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Filter className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-bold text-primary">{t(language, 'shop.filters')}</h2>
+    <div className="sticky top-28 space-y-6 rounded-2xl border border-primary/10 bg-white p-5 shadow-sm shadow-primary/5 sm:p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <Filter className="h-5 w-5 text-primary" />
+        <h2 className="font-playfair text-xl text-primary">{t(language, 'shop.filters')}</h2>
       </div>
 
       {/* Sort */}
@@ -69,10 +71,11 @@ export default function ProductFilters({
         <select
           value={sortBy}
           onChange={(e) => {
-            setSortBy(e.target.value);
-            handleFilterChange();
+            const sort = e.target.value;
+            setSortBy(sort);
+            handleFilterChange({ sort });
           }}
-          className="w-full px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-secondary bg-white"
+          className="w-full rounded-xl border border-primary/15 bg-[#fbf9f3] px-3 py-2.5 text-sm text-primary focus:outline-none focus:ring-2 focus:ring-secondary"
         >
           <option value="newest">{t(language, 'shop.newest')}</option>
           <option value="price-low">{t(language, 'shop.priceLow')}</option>
@@ -82,7 +85,7 @@ export default function ProductFilters({
       </div>
 
       {/* Currency Display */}
-      <div className="bg-light-bg rounded-lg p-3 border border-secondary/20">
+      <div className="rounded-xl border border-secondary/30 bg-[#fbf9f3] p-3">
         <p className="text-xs text-neutral-600 font-semibold">{t(language, 'header.currency')}</p>
         <p className="text-lg font-bold text-secondary">{currency} ({currencySymbols[currency]})</p>
       </div>
@@ -99,8 +102,9 @@ export default function ProductFilters({
                 value=""
                 checked={selectedCategory === ''}
                 onChange={(e) => {
-                  setSelectedCategory(e.target.value);
-                  onFilterChange({ sort: sortBy, currency });
+                  const category = e.target.value;
+                  setSelectedCategory(category);
+                  handleFilterChange({ category: category || undefined });
                 }}
                 className="w-4 h-4 accent-secondary"
               />
@@ -114,8 +118,9 @@ export default function ProductFilters({
                   value={cat._id}
                   checked={selectedCategory === cat._id}
                   onChange={(e) => {
-                    setSelectedCategory(e.target.value);
-                    handleFilterChange();
+                    const category = e.target.value;
+                    setSelectedCategory(category);
+                    handleFilterChange({ category });
                   }}
                   className="w-4 h-4 accent-secondary"
                 />
@@ -138,7 +143,9 @@ export default function ProductFilters({
             onChange={(e) => {
               const newRange: [number, number] = [priceRange[0], parseInt(e.target.value)];
               setPriceRange(newRange);
-              handleFilterChange();
+              handleFilterChange({
+                priceRange: newRange[1] < maxPriceConverted ? newRange : undefined,
+              });
             }}
             className="w-full h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer accent-secondary"
           />
@@ -171,12 +178,12 @@ export default function ProductFilters({
                   ? selectedSizes.filter((s) => s !== size)
                   : [...selectedSizes, size];
                 setSelectedSizes(newSizes);
-                handleFilterChange();
+                handleFilterChange({ sizes: newSizes.length ? newSizes : undefined });
               }}
-              className={`px-3 py-2 rounded-lg border-2 text-xs font-bold transition-all ${
+              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-all ${
                 selectedSizes.includes(size)
-                  ? 'border-secondary bg-secondary text-white'
-                  : 'border-neutral-300 text-neutral-700 hover:border-secondary'
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-primary/15 text-neutral-700 hover:border-primary'
               }`}
             >
               {size}
@@ -197,12 +204,12 @@ export default function ProductFilters({
                   ? selectedColors.filter((c) => c !== color)
                   : [...selectedColors, color];
                 setSelectedColors(newColors);
-                handleFilterChange();
+                handleFilterChange({ colors: newColors.length ? newColors : undefined });
               }}
-              className={`px-3 py-2 rounded-lg border-2 text-xs font-bold transition-all ${
+              className={`rounded-lg border px-3 py-2 text-xs font-semibold transition-all ${
                 selectedColors.includes(color)
-                  ? 'border-secondary bg-secondary text-white'
-                  : 'border-neutral-300 text-neutral-700 hover:border-secondary'
+                  ? 'border-primary bg-primary text-white'
+                  : 'border-primary/15 text-neutral-700 hover:border-primary'
               }`}
             >
               {color}
@@ -219,9 +226,9 @@ export default function ProductFilters({
           setSelectedSizes([]);
           setSelectedColors([]);
           setSortBy('newest');
-          onFilterChange({ currency });
+          onFilterChange({ currency, sort: 'newest' });
         }}
-        className="w-full bg-linear-to-r from-neutral-100 to-neutral-50 text-neutral-700 py-3 rounded-lg font-bold hover:from-neutral-200 hover:to-neutral-100 transition-all border border-neutral-200"
+        className="w-full rounded-xl border border-primary/15 bg-[#fbf9f3] py-3 font-semibold text-primary transition-colors hover:bg-primary/5"
       >
         {t(language, 'shop.resetFilters')}
       </button>

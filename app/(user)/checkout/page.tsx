@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import PaystackButton from '@/components/PaystackButton';
@@ -12,6 +11,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useAuth } from '@/provider/auth-provider';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 const shippingSchema = z.object({
   name: z.string().min(2, 'Name required'),
@@ -31,7 +32,7 @@ const TAX_RATE = 0.075; // 7.5%
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { user } = useAuth();
   const { items, subtotal, clearCart } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -54,14 +55,14 @@ export default function CheckoutPage() {
   useEffect(() => {
     setMounted(true);
     // Prefill email for logged-in users
-    if (session?.user?.email) {
-      setValue('email', session.user.email);
-      setEmail(session.user.email);
-      if (session.user.name) {
-        setValue('name', session.user.name);
+    if (user?.email) {
+      setValue('email', user.email);
+      setEmail(user.email);
+      if (user.name) {
+        setValue('name', user.name);
       }
     }
-  }, [session, setValue]);
+  }, [user, setValue]);
 
   useEffect(() => {
     setEmail(emailValue || '');
@@ -144,7 +145,10 @@ export default function CheckoutPage() {
       // Create order after successful payment
       const res = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getClientAuthHeaders(),
+        },
         body: JSON.stringify({
           ...checkoutData,
           paymentReference: reference,
@@ -395,7 +399,7 @@ export default function CheckoutPage() {
               {showPayment && orderNumber && (
                 <PaystackButton
                   amount={totalInKobo}
-                  email={email || session?.user?.email || ''}
+                  email={email || user?.email || ''}
                   orderNumber={orderNumber}
                   onSuccess={handlePaymentSuccess}
                 />

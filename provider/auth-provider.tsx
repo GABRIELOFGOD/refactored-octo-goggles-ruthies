@@ -1,7 +1,6 @@
 "use client";
 
 import { IUser } from "@/types";
-import { useRouter } from "next/router";
 import { createContext, useContext, useEffect, useState } from "react";
 import { ReactNode } from "react";
 
@@ -31,7 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await request.json();
       if (!request.ok) throw new Error(response.error);
       setUser(response.data);
-    } catch (error) {
+    } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -44,11 +43,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logOut = ({ redirectTo } : { redirectTo?: string }) => {
     localStorage.removeItem("token");
-    redirectTo ? location.assign(redirectTo) : location.reload();
+    if (redirectTo) {
+      location.assign(redirectTo);
+    } else {
+      location.reload();
+    }
   }
 
   useEffect(() => {
-    getUser();
+    void Promise.resolve().then(getUser);
   }, []);
   
   return (
@@ -63,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useCart must be used within CartProvider');
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 }

@@ -61,6 +61,15 @@ export interface ProductVariant {
   sku: string;
 }
 
+export interface ProductPhotoCredit {
+  imageUrl: string;
+  title: string;
+  photographer: string;
+  sourceUrl: string;
+  license: string;
+  licenseUrl: string;
+}
+
 // Product
 export interface IProduct {
   _id: string;
@@ -76,6 +85,7 @@ export interface IProduct {
   };
   heroImage: string;
   gallery: string[];
+  photoCredits?: ProductPhotoCredit[];
   variants: ProductVariant[];
   tags: string[];
   badges?: string[];

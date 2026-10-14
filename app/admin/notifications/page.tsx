@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useAuth } from '@/provider/auth-provider';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 interface Notification {
   _id: string;
@@ -30,7 +31,7 @@ interface ApiResponse {
 }
 
 export default function AdminNotificationsPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,10 +43,10 @@ export default function AdminNotificationsPage() {
 
   // Check authentication
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
+    if (!authLoading && !user) {
+      router.push('/auth/login');
     }
-  }, [status, router]);
+  }, [authLoading, user, router]);
 
   // Fetch notifications
   useEffect(() => {
@@ -61,7 +62,7 @@ export default function AdminNotificationsPage() {
 
         const response = await fetch(`/api/admin/notifications?${query}`, {
           headers: {
-            Authorization: `Bearer ${session?.user?.id}`,
+            ...getClientAuthHeaders(),
           },
         });
 
@@ -85,17 +86,17 @@ export default function AdminNotificationsPage() {
       }
     };
 
-    if (session?.user?.id) {
+    if (user?._id) {
       fetchNotifications();
     }
-  }, [page, typeFilter, readFilter, session?.user?.id, router]);
+  }, [limit, page, typeFilter, readFilter, user?._id, router]);
 
   const handleDeleteNotification = async (notificationId: string) => {
     try {
       const response = await fetch(`/api/notifications/${notificationId}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${session?.user?.id}`,
+          ...getClientAuthHeaders(),
         },
       });
 
@@ -148,7 +149,7 @@ export default function AdminNotificationsPage() {
     return date.toLocaleDateString();
   };
 
-  if (status === 'loading' || loading) {
+  if (authLoading || loading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

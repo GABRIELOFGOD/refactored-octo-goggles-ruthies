@@ -1,12 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
-import { toast } from 'sonner';
 import { IProduct } from '@/types';
 
 // Type guard to ensure product is populated
@@ -22,17 +20,10 @@ function isPopulatedProduct(product: unknown): product is IProduct {
 
 export default function CartPage() {
   const { items, isLoading, removeFromCart, updateQuantity, subtotal } = useCart();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-light-bg to-light-bg/50 py-12">
+      <div className="min-h-screen bg-[#fbf9f3] py-10 sm:py-14">
         <div className="max-w-7xl mx-auto px-4">
           <div className="animate-pulse">
             <div className="h-8 bg-neutral-200 rounded w-1/4 mb-8"></div>
@@ -49,17 +40,18 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-light-bg to-light-bg/50 py-12">
+      <div className="min-h-screen bg-[#fbf9f3] py-10 sm:py-14">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center py-12">
-            <ShoppingCart className="w-16 h-16 mx-auto text-neutral-300 mb-4" />
-            <h1 className="text-3xl font-display mb-2">Your Cart is Empty</h1>
-            <p className="text-neutral-600 mb-6">
-              Looks like you haven't added anything to your cart yet.
+          <div className="mx-auto max-w-xl rounded-3xl border border-primary/10 bg-white px-6 py-16 text-center shadow-sm">
+            <ShoppingCart className="mx-auto mb-5 h-14 w-14 text-primary/25" />
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary/55">Your next favourite is waiting</p>
+            <h1 className="font-playfair text-3xl text-primary">Your bag is taking a breather.</h1>
+            <p className="mb-6 mt-3 text-sm text-neutral-600">
+              Looks like you haven&apos;t added anything to your cart yet.
             </p>
             <Link href="/shop">
-              <Button className="bg-primary text-light-bg hover:bg-primary/90">
-                Continue Shopping
+              <Button className="rounded-full bg-primary px-6 text-white hover:bg-primary/90">
+                Find your look
               </Button>
             </Link>
           </div>
@@ -69,32 +61,33 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-light-bg to-light-bg/50 py-12">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-[#fbf9f3] py-10 sm:py-14">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-display text-primary mb-2">Shopping Cart</h1>
-          <p className="text-neutral-600">
-            {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-primary/55">Almost yours</p>
+          <h1 className="mb-2 font-playfair text-4xl text-primary">Your bag</h1>
+          <p className="text-sm text-neutral-600">
+            {items.length} {items.length === 1 ? 'piece' : 'pieces'} ready for their new home
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-7 lg:grid-cols-3 lg:gap-9">
           {/* Cart Items */}
           <div className="lg:col-span-2">
-            <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
+            <div className="overflow-hidden rounded-2xl border border-primary/10 bg-white shadow-sm">
               {items.filter((item) => isPopulatedProduct(item.product)).map((item) => {
                 const product = item.product as IProduct;
                 return (
                   <div
                     key={item._id}
-                    className="border-b border-neutral-200 last:border-b-0 p-6 hover:bg-light-bg/30 transition-colors"
+                    className="border-b border-primary/10 p-4 transition-colors last:border-b-0 hover:bg-[#fbf9f3]/70 sm:p-6"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                       {/* Product Image */}
                       <div className="sm:col-span-3">
                         {product.heroImage && (
-                          <div className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100">
+                          <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[#eeeae0]">
                             <Image
                               src={product.heroImage}
                               alt={product.name || 'Product'}
@@ -109,9 +102,9 @@ export default function CartPage() {
                       <div className="sm:col-span-5">
                         <Link
                           href={`/shop/${product.slug || product._id}`}
-                          className="hover:text-secondary transition-colors"
+                          className="transition-colors hover:text-primary/70"
                         >
-                          <h3 className="text-lg font-semibold text-primary mb-2">
+                          <h3 className="mb-2 font-playfair text-lg text-primary">
                             {product.name}
                           </h3>
                         </Link>
@@ -139,7 +132,7 @@ export default function CartPage() {
                         )}
 
                         {/* Price */}
-                        <div className="text-lg font-semibold text-secondary">
+                        <div className="text-lg font-semibold text-primary">
                           ₦{(item.price || product.prices.NGN || 0).toLocaleString()}
                         </div>
                       </div>
@@ -148,12 +141,12 @@ export default function CartPage() {
                       <div className="sm:col-span-4 flex flex-col justify-between">
                         <div className="flex items-center justify-between">
                           {/* Quantity Selector */}
-                          <div className="flex items-center gap-2 bg-light-bg rounded-lg p-1">
+                          <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-[#fbf9f3] p-1">
                             <button
                               onClick={() =>
                                 updateQuantity(product._id, item.quantity - 1)
                               }
-                              className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                              className="rounded-full p-2 transition-colors hover:bg-white"
                               disabled={item.quantity <= 1}
                             >
                               <Minus className="w-4 h-4 text-primary" />
@@ -165,7 +158,7 @@ export default function CartPage() {
                               onClick={() =>
                                 updateQuantity(product._id, item.quantity + 1)
                               }
-                              className="p-1 hover:bg-neutral-200 rounded transition-colors"
+                              className="rounded-full p-2 transition-colors hover:bg-white"
                             >
                               <Plus className="w-4 h-4 text-primary" />
                             </button>
@@ -174,7 +167,7 @@ export default function CartPage() {
                           {/* Remove Button */}
                           <button
                             onClick={() => removeFromCart(product._id)}
-                            className="p-2 hover:bg-red-50 rounded transition-colors text-red-600"
+                            className="rounded-full p-2 text-neutral-500 transition-colors hover:bg-red-50 hover:text-red-600"
                             title="Remove from cart"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -195,33 +188,33 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white border border-neutral-200 rounded-lg p-6 sticky top-24">
-              <h2 className="text-xl font-display text-primary mb-6">Order Summary</h2>
+            <div className="sticky top-28 rounded-2xl border border-primary/10 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="mb-6 font-playfair text-2xl text-primary">Order summary</h2>
 
               <div className="space-y-4 mb-6 pb-6 border-b border-neutral-200">
-                <div className="flex justify-between text-neutral-600">
+                <div className="flex justify-between text-sm text-neutral-600">
                   <span>Subtotal</span>
                   <span>₦{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-neutral-600">
+                <div className="flex justify-between text-sm text-neutral-600">
                   <span>Shipping</span>
-                  <span className="text-secondary font-semibold">Calculated at checkout</span>
+                  <span className="text-xs font-medium text-primary/65">At checkout</span>
                 </div>
-                <div className="flex justify-between text-neutral-600">
+                <div className="flex justify-between text-sm text-neutral-600">
                   <span>Tax</span>
-                  <span className="text-secondary font-semibold">Calculated at checkout</span>
+                  <span className="text-xs font-medium text-primary/65">At checkout</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center mb-6">
-                <span className="text-lg font-semibold text-primary">Total</span>
-                <span className="text-2xl font-display text-secondary">
+                <span className="text-lg font-semibold text-primary">Subtotal</span>
+                <span className="font-playfair text-2xl text-primary">
                   ₦{subtotal.toLocaleString()}
                 </span>
               </div>
 
               <Link href="/checkout">
-                <Button className="w-full bg-secondary text-light-bg hover:bg-secondary/90 mb-3">
+                <Button className="mb-3 w-full rounded-full bg-secondary text-primary hover:bg-secondary/90">
                   Proceed to Checkout
                 </Button>
               </Link>
@@ -229,31 +222,12 @@ export default function CartPage() {
               <Link href="/shop">
                 <Button
                   variant="outline"
-                  className="w-full border-primary text-primary hover:bg-light-bg"
+                  className="w-full rounded-full border-primary/20 text-primary hover:bg-[#fbf9f3]"
                 >
                   Continue Shopping
                 </Button>
               </Link>
 
-              {/* Promo Code Section */}
-              <div className="mt-6 pt-6 border-t border-neutral-200">
-                <label className="block text-sm font-semibold text-primary mb-2">
-                  Promo Code
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Enter code"
-                    className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-secondary"
-                  />
-                  <Button
-                    variant="outline"
-                    className="border-primary text-primary hover:bg-light-bg text-sm"
-                  >
-                    Apply
-                  </Button>
-                </div>
-              </div>
             </div>
           </div>
         </div>

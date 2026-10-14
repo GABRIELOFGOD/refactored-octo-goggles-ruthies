@@ -22,7 +22,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
   // Get authorization header with token
   const getAuthHeader = () => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token');
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };

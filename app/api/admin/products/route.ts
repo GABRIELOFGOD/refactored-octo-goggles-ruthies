@@ -107,10 +107,10 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     // const { name, category, description, prices, images, variants, tags, featured, newArrival, published, seo } = body;
-    const { name, category, description, prices, heroImage, gallery, variants, tags, isFeatured, isNewArrival, isPublished, metaTitle, metaDescription } = body;
+    const { name, category, description, prices, heroImage, gallery, photoCredits, variants, tags, isFeatured, isNewArrival, isPublished, metaTitle, metaDescription } = body;
 
     // Generate slug
-    const slug = name
+    const slug = body.slug || name
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^\w-]/g, '');
@@ -165,6 +165,7 @@ export async function POST(request: NextRequest) {
       prices,
       heroImage,
       gallery: gallery || [],
+      photoCredits: photoCredits || [],
       variants: variants || [],
       tags: tags || [],
       isFeatured: isFeatured || false,

@@ -2,21 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Cart } from '@/models/Cart';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, ICart } from '@/types';
-import { auth } from '@/lib/auth';
-import { authenticateUser } from '@/lib/auth-helpers';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
 
-    const session = await auth();
+    const user = request.headers.get('authorization')
+      ? await authenticateUser(request)
+      : null;
     const sessionId = request.nextUrl.searchParams.get('sessionId');
 
     let cart;
 
-    if (session?.user?.id) {
+    if (user?._id) {
       // Logged-in user
-      cart = await Cart.findOne({ user: session.user.id }).populate({
+      cart = await Cart.findOne({ user: user._id }).populate({
         path: 'items.product',
         select: 'name prices heroImage',
       });
@@ -46,6 +47,12 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Get cart error:', error);
     return NextResponse.json<ApiResponse>(
       {
@@ -60,12 +67,23 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
-    const user = await authenticateUser(request);
-    const userHasCart = await Cart.findOne({ user });
+    const user = request.headers.get('authorization')
+      ? await authenticateUser(request)
+      : null;
+    const body = user ? {} : await request.json();
+    const filter = user?._id
+      ? { user: user._id }
+      : { sessionId: body.sessionId };
+    if (!user && !body.sessionId) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Session ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const userHasCart = await Cart.findOne(filter);
     if (!userHasCart) {
-      const newCart = await Cart.create({
-        user, item: []
-      });
+      const newCart = await Cart.create({ ...filter, items: [] });
       return NextResponse.json<ApiResponse>(
         {
           success: true,
@@ -85,44 +103,18 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // SEPARATED TO BE DELETED
-    // const body = await request.json();
-
-    // const session = await auth();
-
-    // const cartData: any = {
-    //   items: body.items || [],
-    // };
-
-    // if (session?.user?.id) {
-    //   cartData.user = session.user.id;
-    // } else if (body.sessionId) {
-    //   cartData.sessionId = body.sessionId;
-    // }
-
-    // let cart = await Cart.findOne(
-    //   session?.user?.id ? { user: session.user.id } : { sessionId: body.sessionId }
-    // );
-
-    // if (!cart) {
-    //   cart = new Cart(cartData);
-    //   await cart.save();
-    // }
-
-    // return NextResponse.json<ApiResponse>(
-    //   {
-    //     success: true,
-    //     data: cart,
-    //     message: 'Cart created',
-    //   },
-    //   { status: 201 }
-    // );
-  } catch (error: any) {
+  } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Create cart error:', error);
     return NextResponse.json<ApiResponse>(
       {
         success: false,
-        error: error.error || 'Failed to create cart',
+        error: 'Failed to create cart',
       },
       { status: 500 }
     );

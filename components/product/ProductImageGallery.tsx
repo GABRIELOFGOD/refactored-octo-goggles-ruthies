@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { IProduct } from '@/types';
+import PhotoAttribution from '@/components/product/PhotoAttribution';
 
 interface ProductImageGalleryProps {
   product: IProduct;
@@ -12,6 +13,7 @@ export default function ProductImageGallery({ product }: ProductImageGalleryProp
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const allImages = [product.heroImage, ...product.gallery];
+  const photoCredit = product.photoCredits?.find((credit) => credit.imageUrl === allImages[selectedIndex]);
 
   return (
     <div className="space-y-4">
@@ -22,9 +24,14 @@ export default function ProductImageGallery({ product }: ProductImageGalleryProp
       >
         <img
           src={allImages[selectedIndex]}
-          alt={`${product.name} - Image ${selectedIndex + 1}`}
+          alt={`${product.name} style reference ${selectedIndex + 1}`}
           className="w-full h-full object-cover"
         />
+        {photoCredit && (
+          <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-primary shadow-sm">
+            Style reference image
+          </span>
+        )}
       </div>
 
       {/* Thumbnail Gallery */}
@@ -41,6 +48,7 @@ export default function ProductImageGallery({ product }: ProductImageGalleryProp
           </button>
         ))}
       </div>
+      <PhotoAttribution credit={photoCredit} />
 
       {/* Lightbox Modal */}
       {isLightboxOpen && (
@@ -51,7 +59,7 @@ export default function ProductImageGallery({ product }: ProductImageGalleryProp
           <div className="relative max-w-4xl w-full max-h-screen flex items-center justify-center">
             <img
               src={allImages[selectedIndex]}
-              alt={`${product.name} - Full resolution`}
+              alt={`${product.name} style reference - Full resolution`}
               className="w-full h-auto max-h-screen object-contain"
               onClick={(e) => e.stopPropagation()}
             />

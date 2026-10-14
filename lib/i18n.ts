@@ -1,27 +1,46 @@
 import en from '@/i18n/en.json';
-import fr from '@/i18n/fr.json';
 
 export type Language = 'en' | 'fr';
 export type Currency = 'NGN' | 'USD' | 'GBP' | 'EUR';
 
-const translations = {
-  en,
-  fr,
+const englishTranslations: Record<string, string> = {};
+const frenchTranslations: Record<string, string> = {};
+
+const flattenTranslations = (
+  value: Record<string, unknown>,
+  prefix = '',
+  output: Record<string, string> = {}
+): Record<string, string> => {
+  for (const [key, entry] of Object.entries(value)) {
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    if (typeof entry === 'string') {
+      output[fullKey] = entry;
+    } else if (entry && typeof entry === 'object' && !Array.isArray(entry)) {
+      flattenTranslations(entry as Record<string, unknown>, fullKey, output);
+    }
+  }
+  return output;
+};
+
+Object.assign(englishTranslations, flattenTranslations(en));
+
+export const getEnglishTranslationEntries = (): Array<[string, string]> =>
+  Object.entries(englishTranslations);
+
+export const setDynamicTranslations = (
+  language: Language,
+  translations: Record<string, string>
+): void => {
+  if (language === 'fr') {
+    Object.assign(frenchTranslations, translations);
+  }
 };
 
 export const getTranslation = (lang: Language, key: string): string => {
-  const keys = key.split('.');
-  let value: any = translations[lang];
-
-  for (const k of keys) {
-    if (value && typeof value === 'object' && k in value) {
-      value = value[k];
-    } else {
-      return key; // Return key if translation not found
-    }
+  if (lang === 'fr' && frenchTranslations[key]) {
+    return frenchTranslations[key];
   }
-
-  return typeof value === 'string' ? value : key;
+  return englishTranslations[key] ?? key;
 };
 
 export const t = (lang: Language, key: string): string => {

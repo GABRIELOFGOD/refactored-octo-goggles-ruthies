@@ -2,30 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Wishlist } from '@/models/Wishlist';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IWishlist } from '@/types';
-import { auth } from '@/lib/auth';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
 
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          error: 'Unauthorized',
-        },
-        { status: 401 }
-      );
-    }
+    const user = await authenticateUser(request);
 
-    let wishlist = await Wishlist.findOne({ user: session.user.id }).populate(
+    let wishlist = await Wishlist.findOne({ user: user._id }).populate(
       'products',
       'name prices heroImage'
     );
 
     if (!wishlist) {
-      wishlist = new Wishlist({ user: session.user.id, products: [] });
+      wishlist = new Wishlist({ user: user._id, products: [] });
       await wishlist.save();
     }
 
@@ -37,6 +28,12 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Get wishlist error:', error);
     return NextResponse.json<ApiResponse>(
       {
@@ -53,22 +50,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     await connectToDatabase();
 
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json<ApiResponse>(
-        {
-          success: false,
-          error: 'Unauthorized',
-        },
-        { status: 401 }
-      );
-    }
+    const user = await authenticateUser(request);
 
-    let wishlist = await Wishlist.findOne({ user: session.user.id });
+    let wishlist = await Wishlist.findOne({ user: user._id });
 
     if (!wishlist) {
       wishlist = new Wishlist({
-        user: session.user.id,
+        user: user._id,
         products: [body.productId],
       });
     } else {
@@ -89,6 +77,12 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Add to wishlist error:', error);
     return NextResponse.json<ApiResponse>(
       {

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useLanguage } from '@/context/LanguageContext';
-import { ShoppingCart, Heart, Menu, X } from 'lucide-react';
+import { ShoppingCart, Heart, Menu, X, ArrowUpRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/provider/auth-provider';
 import Image from 'next/image';
@@ -14,7 +14,7 @@ import { CurrencySwitcher } from './CurrencySwitcher';
 import { t } from '@/lib/i18n';
 
 export default function Header() {
-  const { items: cartItems } = useCart();
+  const { totalItems } = useCart();
   const { wishlistItems } = useWishlist();
   const { language } = useLanguage();
   const pathName = usePathname();
@@ -25,34 +25,40 @@ export default function Header() {
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    <header className="bg-white border-b border-neutral-200 sticky top-0 z-40">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+    <header className="sticky top-0 z-40 border-b border-primary/10 bg-[#fffdf9]/95 shadow-sm shadow-primary/5 backdrop-blur-xl">
+      <div className="bg-primary px-4 py-2 text-center text-[10px] font-medium tracking-[0.16em] text-white/90 sm:text-xs">
+        AFRICAN STYLE, STYLED FOR YOU
+      </div>
+      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center space-x-2" onClick={closeMenu}>
-          <div className="w-10 h-10 my-auto relative">
-            <Image src={"/brand/ruthies_logo.jpg"} alt="Logo" fill className="w-full h-full object-cover" />
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" onClick={closeMenu}>
+          <div className="relative my-auto h-10 w-10 overflow-hidden rounded-full ring-1 ring-primary/10">
+            <Image src="/brand/ruthies_logo.jpg" alt="Ruthie&apos;s Africa" fill className="h-full w-full object-cover" />
           </div>
-          <h1 className="text-2xl hidden md:flex font-bold font-playfair text-primary">Ruthies</h1>
+          <div className="hidden sm:block">
+            <p className="font-playfair text-xl font-semibold leading-none tracking-tight text-primary">Ruthie&apos;s</p>
+            <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.19em] text-primary/60">Africa · Wear your story</p>
+          </div>
         </Link>
 
         {/* Navigation - Desktop */}
-        <div className="hidden md:flex items-center space-x-8">
-          <Link href="/shop" className="text-neutral-700 hover:text-secondary font-medium">
+        <div className="hidden items-center gap-7 md:flex">
+          <Link href="/shop" className={`text-sm font-medium transition-colors hover:text-primary ${pathName.startsWith('/shop') ? 'text-primary' : 'text-neutral-600'}`}>
             {t(language, 'nav.shop')}
           </Link>
-          <Link href="/services" className="text-neutral-700 hover:text-secondary font-medium">
+          <Link href="/services" className={`text-sm font-medium transition-colors hover:text-primary ${pathName.startsWith('/services') ? 'text-primary' : 'text-neutral-600'}`}>
             {t(language, 'nav.services')}
           </Link>
-          <Link href="/size-guide" className="text-neutral-700 hover:text-secondary font-medium">
+          <Link href="/size-guide" className="text-sm font-medium text-neutral-600 transition-colors hover:text-primary">
             {t(language, 'nav.sizeGuide')}
           </Link>
-          <Link href="/track-order" className="text-neutral-700 hover:text-secondary font-medium">
+          <Link href="/track-order" className="text-sm font-medium text-neutral-600 transition-colors hover:text-primary">
             {t(language, 'nav.trackOrder')}
           </Link>
         </div>
 
         {/* Right side - Language, Currency, Auth & Cart */}
-        <div className="flex items-center space-x-2 md:space-x-4">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* Language & Currency Switchers */}
           <LanguageSwitcher />
           <CurrencySwitcher />
@@ -62,15 +68,15 @@ export default function Header() {
             {user ? (
               <>
                 {/* <span className="text-sm text-neutral-700">{user?.name}</span> */}
-                <Link href="/orders" className="text-neutral-700 hover:text-secondary font-medium text-sm">
+                <Link href="/orders" className="text-sm font-medium text-neutral-600 transition-colors hover:text-primary">
                   {t(language, 'nav.orders')}
                 </Link>
-                <Link href="/account" className="text-neutral-700 hover:text-secondary font-medium text-sm">
+                <Link href="/account" className="text-sm font-medium text-neutral-600 transition-colors hover:text-primary">
                   {t(language, 'nav.account')}
                 </Link>
                 <button
                   onClick={() => logOut({ redirectTo: `${pathName}` })}
-                  className="text-neutral-700 hover:text-secondary font-medium text-sm cursor-pointer"
+                  className="cursor-pointer text-sm font-medium text-neutral-600 transition-colors hover:text-primary"
                 >
                   {t(language, 'nav.logout')}
                 </button>
@@ -79,13 +85,13 @@ export default function Header() {
               <>
                 <Link
                   href={pathName !== "/" ? `/auth/login?from=${pathName}` : "/auth/login"}
-                  className="text-neutral-700 hover:text-secondary font-medium text-sm"
+                  className="text-sm font-medium text-neutral-600 transition-colors hover:text-primary"
                 >
                   {t(language, 'nav.login')}
                 </Link>
                 <Link
                   href="/auth/register"
-                  className="bg-primary text-light-bg px-4 py-2 rounded-lg hover:bg-primary/90 font-medium transition-all text-sm"
+                  className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
                 >
                   {t(language, 'nav.register')}
                 </Link>
@@ -96,12 +102,13 @@ export default function Header() {
           {/* Cart Icon */}
           <Link
             href="/cart"
-            className="relative text-neutral-700 hover:text-secondary transition-colors"
+            aria-label={`Shopping bag${totalItems > 0 ? `, ${totalItems} items` : ''}`}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/5"
           >
-            <ShoppingCart className="w-6 h-6" />
-            {cartItems.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-secondary text-light-bg text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                {cartItems.length}
+            <ShoppingCart className="h-[19px] w-[19px]" />
+            {totalItems > 0 && (
+              <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-bold text-primary ring-2 ring-[#fffdf9]">
+                {totalItems}
               </span>
             )}
           </Link>
@@ -109,11 +116,12 @@ export default function Header() {
           {/* Wishlist Icon */}
           <Link
             href="/wishlist"
-            className="relative text-neutral-700 hover:text-secondary transition-colors"
+            aria-label={`Wishlist${wishlistItems.length > 0 ? `, ${wishlistItems.length} items` : ''}`}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/5"
           >
-            <Heart className="w-6 h-6" />
+            <Heart className="h-[19px] w-[19px]" />
             {wishlistItems.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-secondary text-light-bg text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              <span className="absolute right-0 top-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-secondary px-1 text-[10px] font-bold text-primary ring-2 ring-[#fffdf9]">
                 {wishlistItems.length}
               </span>
             )}
@@ -122,7 +130,8 @@ export default function Header() {
           {/* Hamburger Menu - Mobile */}
           <button
             onClick={toggleMenu}
-            className="md:hidden text-neutral-700 hover:text-secondary transition-colors"
+            aria-expanded={isMenuOpen}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-primary transition-colors hover:bg-primary/5 md:hidden"
             aria-label={t(language, 'nav.menu')}
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -132,53 +141,54 @@ export default function Header() {
 
       {/* Mobile Navigation Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-neutral-200 px-4 py-4 space-y-3">
+        <div className="space-y-3 border-t border-primary/10 bg-[#fffdf9] px-4 py-4 md:hidden">
           {/* Mobile Navigation Links */}
           <Link
             href="/shop"
-            className="block text-neutral-700 hover:text-secondary font-medium py-2"
+            className="flex items-center justify-between py-2 font-medium text-neutral-700 transition-colors hover:text-primary"
             onClick={closeMenu}
           >
             {t(language, 'nav.shop')}
+            <ArrowUpRight className="h-4 w-4" />
           </Link>
           <Link
             href="/services"
-            className="block text-neutral-700 hover:text-secondary font-medium py-2"
+            className="block py-2 font-medium text-neutral-700 transition-colors hover:text-primary"
             onClick={closeMenu}
           >
             {t(language, 'nav.services')}
           </Link>
           <Link
             href="/size-guide"
-            className="block text-neutral-700 hover:text-secondary font-medium py-2"
+            className="block py-2 font-medium text-neutral-700 transition-colors hover:text-primary"
             onClick={closeMenu}
           >
             {t(language, 'nav.sizeGuide')}
           </Link>
           <Link
             href="/track-order"
-            className="block text-neutral-700 hover:text-secondary font-medium py-2"
+            className="block py-2 font-medium text-neutral-700 transition-colors hover:text-primary"
             onClick={closeMenu}
           >
             {t(language, 'nav.trackOrder')}
           </Link>
 
-          <hr className="my-2" />
+          <hr className="my-2 border-primary/10" />
 
           {/* Mobile Auth Links */}
           {user ? (
             <>
-              <div className="text-sm text-neutral-700 py-2 font-medium">{user?.name}</div>
+              <div className="py-2 text-sm font-medium text-neutral-700">{user?.name}</div>
               <Link
                 href="/orders"
-                className="block text-neutral-700 hover:text-secondary font-medium py-2"
+                className="block py-2 font-medium text-neutral-700 transition-colors hover:text-primary"
                 onClick={closeMenu}
               >
                 {t(language, 'nav.orders')}
               </Link>
               <Link
                 href="/account"
-                className="block text-neutral-700 hover:text-secondary font-medium py-2"
+                className="block py-2 font-medium text-neutral-700 transition-colors hover:text-primary"
                 onClick={closeMenu}
               >
                 {t(language, 'nav.account')}
@@ -188,7 +198,7 @@ export default function Header() {
                   logOut({ redirectTo: `${pathName}` });
                   closeMenu();
                 }}
-                className="block w-full text-left text-neutral-700 hover:text-secondary font-medium py-2"
+                className="block w-full py-2 text-left font-medium text-neutral-700 transition-colors hover:text-primary"
               >
                 {t(language, 'nav.logout')}
               </button>
@@ -197,14 +207,14 @@ export default function Header() {
             <>
               <Link
                 href={pathName !== "/" ? `/auth/login?from=${pathName}` : "/auth/login"}
-                className="block text-neutral-700 hover:text-secondary font-medium py-2"
+                className="block py-2 font-medium text-neutral-700 transition-colors hover:text-primary"
                 onClick={closeMenu}
               >
                 {t(language, 'nav.login')}
               </Link>
               <Link
                 href="/auth/register"
-                className="block bg-primary text-light-bg px-4 py-2 rounded-lg hover:bg-primary/90 font-medium transition-all text-center"
+                className="block rounded-full bg-primary px-4 py-2 text-center font-medium text-white transition-all hover:bg-primary/90"
                 onClick={closeMenu}
               >
                 {t(language, 'nav.register')}

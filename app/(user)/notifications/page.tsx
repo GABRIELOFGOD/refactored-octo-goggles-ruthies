@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useAuth } from '@/provider/auth-provider';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 interface Notification {
   _id: string;
@@ -27,7 +28,7 @@ interface ApiResponse {
 }
 
 export default function NotificationsPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,10 +40,10 @@ export default function NotificationsPage() {
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
+    if (!authLoading && !user) {
+      router.push('/auth/login');
     }
-  }, [status, router]);
+  }, [authLoading, user, router]);
 
   // Fetch notifications
   useEffect(() => {
@@ -55,11 +56,13 @@ export default function NotificationsPage() {
           ...(typeFilter && { type: typeFilter }),
         });
 
-        const response = await fetch(`/api/notifications?${query}`);
+        const response = await fetch(`/api/notifications?${query}`, {
+          headers: getClientAuthHeaders(),
+        });
 
         if (!response.ok) {
           if (response.status === 401) {
-            router.push('/login');
+            router.push('/auth/login');
             return;
           }
           throw new Error('Failed to fetch notifications');
@@ -80,10 +83,10 @@ export default function NotificationsPage() {
       }
     };
 
-    if (session?.user?.id) {
+    if (user?._id) {
       fetchNotifications();
     }
-  }, [page, typeFilter, session?.user?.id, router]);
+  }, [limit, page, typeFilter, user?._id, router]);
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
@@ -91,6 +94,7 @@ export default function NotificationsPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...getClientAuthHeaders(),
         },
         body: JSON.stringify({ isRead: true }),
       });
@@ -117,6 +121,7 @@ export default function NotificationsPage() {
     try {
       const response = await fetch(`/api/notifications/${notificationId}`, {
         method: 'DELETE',
+        headers: getClientAuthHeaders(),
       });
 
       if (!response.ok) {
@@ -142,17 +147,6 @@ export default function NotificationsPage() {
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'service':
-        return 'border-blue-200 bg-blue-50';
-      case 'order':
-        return 'border-purple-200 bg-purple-50';
-      default:
-        return 'border-gray-200 bg-gray-50';
-    }
-  };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -168,7 +162,7 @@ export default function NotificationsPage() {
     return date.toLocaleDateString();
   };
 
-  if (status === 'loading' || loading) {
+  if (authLoading || loading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

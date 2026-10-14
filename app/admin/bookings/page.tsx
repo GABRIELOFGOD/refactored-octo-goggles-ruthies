@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import BookingManagementTable from '@/components/admin/BookingManagementTable';
 import EmailNotificationModal from '@/components/admin/EmailNotificationModal';
+import { useAuth } from '@/provider/auth-provider';
+import { getClientAuthHeaders } from '@/lib/client-auth';
 
 interface Booking {
   _id: string;
@@ -39,7 +40,7 @@ interface ApiResponse {
 }
 
 export default function AdminBookingsPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,10 +54,10 @@ export default function AdminBookingsPage() {
 
   // Check authentication
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
+    if (!authLoading && !user) {
+      router.push('/auth/login');
     }
-  }, [status, router]);
+  }, [authLoading, user, router]);
 
   // Fetch bookings
   useEffect(() => {
@@ -72,7 +73,7 @@ export default function AdminBookingsPage() {
 
         const response = await fetch(`/api/admin/bookings?${query}`, {
           headers: {
-            Authorization: `Bearer ${session?.user?.id}`,
+            ...getClientAuthHeaders(),
           },
         });
 
@@ -96,10 +97,10 @@ export default function AdminBookingsPage() {
       }
     };
 
-    if (session?.user?.id) {
+    if (user?._id) {
       fetchBookings();
     }
-  }, [page, statusFilter, searchTerm, session?.user?.id, router]);
+  }, [limit, page, statusFilter, searchTerm, user?._id, router]);
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
     try {
@@ -107,7 +108,7 @@ export default function AdminBookingsPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.user?.id}`,
+          ...getClientAuthHeaders(),
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -145,7 +146,7 @@ export default function AdminBookingsPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.user?.id}`,
+            ...getClientAuthHeaders(),
           },
           body: JSON.stringify(emailData),
         }
@@ -164,7 +165,7 @@ export default function AdminBookingsPage() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (authLoading || loading || !user) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
