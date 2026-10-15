@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Product } from '@/models/Product';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, IProduct } from '@/types';
-import { authenticateUser } from '@/lib/auth-helpers';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 import { Category } from '@/models/Category';
 
 export async function GET(
@@ -32,6 +32,12 @@ export async function GET(
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Get product error:', error);
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Failed to fetch product' },
@@ -103,6 +109,12 @@ export async function PUT(
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Update product error:', error);
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Failed to update product' },
@@ -143,6 +155,12 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Delete product error:', error);
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Failed to delete product' },

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Category } from '@/models/Category';
 import connectToDatabase from '@/lib/mongoose';
 import { ApiResponse, ICategory } from '@/types';
-import { authenticateUser } from '@/lib/auth-helpers';
+import { authenticateUser, AuthenticationError } from '@/lib/auth-helpers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,11 +15,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(request.nextUrl.searchParams.get('limit') || '20', 10);
     const search = request.nextUrl.searchParams.get('search');
 
-    let query: any = { isDeleted: { $ne: true } };
-
-    if (search) {
-      query.name = { $regex: search, $options: 'i' };
-    }
+    const query = {
+      isDeleted: { $ne: true },
+      ...(search ? { name: { $regex: search, $options: 'i' } } : {}),
+    };
 
     const total = await Category.countDocuments(query);
     const categories = await Category.find(query)
@@ -36,6 +35,12 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    if (error instanceof AuthenticationError) {
+      return NextResponse.json<ApiResponse>(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
     console.error('Get categories error:', error);
     return NextResponse.json<ApiResponse>(
       { success: false, error: 'Failed to fetch categories' },
